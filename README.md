@@ -14,8 +14,14 @@ Player
   -sprite texture
   -collision detection / walking
   -jumping (+ double jumping)
+  -laser gun?
 
 Heads-up display
   -use textures for numbers / letters
   -lives / health
   -coins / points
+
+Stretch Goals:
+infinite level
+NPCs / terrain interaction
+generate the texture for the skybox
