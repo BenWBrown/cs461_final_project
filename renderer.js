@@ -1,6 +1,6 @@
 var createCamera = function() {
 
-  let position = [0.0, 0.5, 7.0];
+  let position = [0.0, 0.5, 4.0];
   return {
     set: (pos) => {
       position = pos;
@@ -10,7 +10,7 @@ var createCamera = function() {
     },
     update: (game) => {
       position[0] = game.player.position()[0];
-      position[1] = game.player.position()[1]+0.5;
+      // position[1] = game.player.position()[1]+0.5;
       // console.log(game.player.position);
     },
     apply: (transform) => {
@@ -27,11 +27,12 @@ var createCamera = function() {
 
 // not to be used in final code, just for rendering demo purposes
 var createFloor = function(gl, program, size){
+  w = 1.0;
+  h = 1.0;
   let floor = {
     vertices :  new Float32Array([
       0.0, 0.0, 0.0,  0.0, 0.0, size,  size, 0.0, size,  size, 0.0, 0.0
     ]),
-
     normals : new Float32Array([
       0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0, 0.0
     ]),
@@ -55,9 +56,7 @@ var createFloor = function(gl, program, size){
   gl.bindBuffer(gl.ARRAY_BUFFER, floor.normalBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, floor.normals, gl.STATIC_DRAW);
 
-  floor.textureBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, floor.textureBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, floor.textureCoordinates, gl.STATIC_DRAW);
+
 
   floor.indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, floor.indexBuffer);
@@ -65,9 +64,14 @@ var createFloor = function(gl, program, size){
 
 
   return function(){
-    gl.uniform1i(program.u_Sampler, 0); // texture 1: floor
+    gl.uniform1i(program.u_Sampler, 0); // texture 0: floor
     gl.bindBuffer(gl.ARRAY_BUFFER, floor.vertexBuffer);
     gl.vertexAttribPointer(program.a_Position, 3, gl.FLOAT, false, 0,0);
+
+    floor.textureBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, floor.textureBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, floor.textureCoordinates, gl.STATIC_DRAW);
+
 
     gl.bindBuffer(gl.ARRAY_BUFFER, floor.textureBuffer);
     gl.vertexAttribPointer(program.a_TexCoord, 2, gl.FLOAT, false, 0,0);
@@ -90,6 +94,82 @@ var createFloor = function(gl, program, size){
   };
 };
 
+
+var createPlayerSprite = function(gl, program, w, h) {
+  let player = {
+    w : w,
+    h : h,
+
+    normals : new Float32Array([
+      0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0, 0.0
+    ]),
+
+    indices : new Uint8Array([
+      0,1,2,  0,2,3,
+    ])
+
+  };
+
+
+
+
+  player.normalBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, player.normalBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, player.normals, gl.STATIC_DRAW);
+
+
+
+
+  player.indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, player.indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, player.indices, gl.STATIC_DRAW);
+
+
+  return function(pos, frame){
+    gl.uniform1i(program.u_Sampler, 1); // texture 1: player
+    gl.uniform3f(program.u_TransparentColor, 0.0, 0.0, 1.0); // texture 1: player
+
+
+    // finish filling buffers
+
+    player.vertices = new Float32Array([
+      pos[0]-w/2, h+pos[1], pos[2],  pos[0]+w/2, h+pos[1], pos[2],  pos[0]+w/2, pos[1], pos[2],  pos[0]-w/2, pos[1], pos[2]
+    ])
+    player.vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, player.vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, player.vertices, gl.STATIC_DRAW);
+
+    player.textureCoordinates = new Float32Array(frame);
+    player.textureBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, player.textureBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, player.textureCoordinates, gl.STATIC_DRAW);
+
+
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, player.vertexBuffer);
+    gl.vertexAttribPointer(program.a_Position, 3, gl.FLOAT, false, 0,0);
+
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, player.textureBuffer);
+    gl.vertexAttribPointer(program.a_TexCoord, 2, gl.FLOAT, false, 0,0);
+
+    if (program.a_Normal !== undefined){
+      // only enable the normal buffer if the program supports it
+      gl.bindBuffer(gl.ARRAY_BUFFER, player.normalBuffer);
+      gl.vertexAttribPointer(program.a_Normal, 3, gl.FLOAT, false, 0,0);
+    }
+
+    if (program.a_Color !== undefined){
+      // only enable the normal buffer if the program supports it
+      gl.bindBuffer(gl.ARRAY_BUFFER, player.normalBuffer);
+      gl.vertexAttribPointer(program.a_Color, 3, gl.FLOAT, false, 0,0);
+    }
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, player.indexBuffer);
+    gl.drawElements(gl.TRIANGLES, player.indices.length, gl.UNSIGNED_BYTE, 0);
+
+  };
+}
 
 
 
@@ -133,11 +213,11 @@ window.onload = function(){
   gl.enableVertexAttribArray(program.a_Normal);
 
 
-  // gl.enable(gl.DEPTH_TEST);
-  gl.disable(gl.DEPTH_TEST);
+  gl.enable(gl.DEPTH_TEST);
+  // gl.disable(gl.DEPTH_TEST);
 
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  gl.enable(gl.BLEND);
+  // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  // gl.enable(gl.BLEND);
 
   gl.clearColor(0.4,0.6,1,1); // sky color
 
@@ -147,6 +227,7 @@ window.onload = function(){
 
 
   program.u_Sampler = gl.getUniformLocation(program, 'u_Sampler');
+  program.u_TransparentColor = gl.getUniformLocation(program, 'u_TransparentColor');
 
 
   program.u_LightDirection = gl.getUniformLocation(program, "u_LightDirection");
@@ -156,9 +237,10 @@ window.onload = function(){
 
 
   gl.uniform3f(program.u_LightDirection, 0.0, 1.0, 0.0);
-  gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
-  gl.uniform3f(program.u_Diffuse, 0.7, 0.7, 0.7);
-  gl.uniform3f(program.u_Specular, 0.8, 0.8, 0.8);
+  // gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
+  gl.uniform3f(program.u_Ambient, 0.9, 0.9, 0.9);
+  // gl.uniform3f(program.u_Diffuse, 0.7, 0.7, 0.7);
+  // gl.uniform3f(program.u_Specular, 0.8, 0.8, 0.8);
 
 
   camera = createCamera();
@@ -179,17 +261,23 @@ window.onload = function(){
   game = createGame();
 
 
+  animation = createAnimation();
+
+
   var now = 0;
   var then = 0;
   drawGrass = createFloor(gl, program, 5.0);
+  drawPlayer = createPlayerSprite(gl, program, 1.0, 1.0);
   let render = function(now){
     if (then)
       var elapsed = now - then;
     then = now;
 
-    game.update(keyMap);
+    game.update(elapsed, keyMap);
 
     camera.update(game);
+
+    animation.update(now, game.player.getState(keyMap));
 
 
     // draw:
@@ -207,11 +295,25 @@ window.onload = function(){
 
 
     drawGrass();
+    drawPlayer(game.player.position(),
+      animation.getPlayerFrame());
 
     requestAnimationFrame(render);
   };
 
+  let texture_player = gl.createTexture();
+  let image_player = new Image();
 
+  image_player.onload = ()=>{
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texture_player);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_player);
+
+    render();
+  };
 
   // load textures
   let texture_grass = gl.createTexture();
@@ -222,11 +324,11 @@ window.onload = function(){
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture_grass);
     // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image_grass);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_grass);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
 
-    render();
+    image_player.src = 'player.png';
   };
 
   image_grass.src = 'grass.png';

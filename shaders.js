@@ -57,14 +57,9 @@ void main(){
 
   light_position = vec3(0.0,0.1,0.0);
 
-
   vec3 color = (texture2D(u_Sampler, v_TexCoord)).xyz;
+  alpha = (texture2D(u_Sampler, v_TexCoord)).a;
 
-  if (color == u_TransparentColor) {
-    alpha = 0.0;
-  } else {
-    alpha = 1.0;
-  }
 
   P = (u_View*u_Transform*v_Position).xyz;
 
@@ -80,7 +75,12 @@ void main(){
   diffuse /= (1.0+0.1*dist*dist); // distance attenuation
   specular = max(color * pow(max(dot(N, H), 0.0), shininess) * light_specular, 0.0) ;
 
-  gl_FragColor = vec4(ambient + diffuse + specular, alpha);
+
+  if (alpha < 0.5)
+    discard;
+  else
+    gl_FragColor = vec4(ambient + diffuse + specular, 1.0);
   // gl_FragColor = vec4(ambient + diffuse, alpha);
+  // gl_FragColor = (texture2D(u_Sampler, v_TexCoord));
 }
 `;
