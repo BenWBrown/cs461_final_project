@@ -124,13 +124,26 @@ createPlayer = function() {
 
 // create Environment object
 createEnvironment = function() {
-  return {};
+  let height = [0, 0.5, 0.75]; //TODO: GENERATE HEIGHT RANDOMLY
+  return {
+    height: height,
+    heightAt: (xCoord)=>{
+      // if (xCoord < 0) {
+      //   xCoord = (-xCoord / height.length) * height.length + xCoord //I think this works but haven't tested it yet
+      // }
+      let left = Math.floor(xCoord) % height.length;
+      let right = Math.ceil(xCoord) % height.length;
+      let weight = 1 - (xCoord - left);
+      return height[left] * weight + height[right] * (1 - weight);
+    },
+  };
 }
 
 // create Game object
 createGame = function() {
 
   let environment = createEnvironment(); // physical environment
+  debugger;
   let player = createPlayer();
   let npcs = [];
 
@@ -140,7 +153,7 @@ createGame = function() {
     player: player,
     update: (elapsed, keyMap) => {
       // updateInput(keyMap, elapsed);
-      player.update(elapsed, keyMap, environment);
+      player.update(elapsed, keyMap, environment, npcs);
       if (keyMap['W'.charCodeAt(0)]){
         player.back(elapsed);
       }
