@@ -1,6 +1,6 @@
 var createCamera = function() {
 
-  let position = [0.0, 0.5, 4.0];
+  let position = [0.0, 1.5, 4.0];
   return {
     set: (pos) => {
       position = pos;
@@ -16,7 +16,7 @@ var createCamera = function() {
     apply: (transform) => {
       let eye = vec3.fromValues(position[0], position[1], position[2]);
       let up = vec3.fromValues(0,1,0);
-      let at = vec3.fromValues(position[0], position[1], position[2]-1.0);
+      let at = vec3.fromValues(position[0], position[1]-0.5, position[2]-1.0);
 
       mat4.lookAt(transform, eye, at, up);
     }
@@ -110,24 +110,16 @@ var createPlayerSprite = function(gl, program, w, h) {
 
   };
 
-
-
-
   player.normalBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, player.normalBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, player.normals, gl.STATIC_DRAW);
-
-
-
 
   player.indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, player.indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, player.indices, gl.STATIC_DRAW);
 
-
   return function(pos, frame){
     gl.uniform1i(program.u_Sampler, 1); // texture 1: player
-    gl.uniform3f(program.u_TransparentColor, 0.0, 0.0, 1.0); // texture 1: player
 
 
     // finish filling buffers
@@ -171,7 +163,85 @@ var createPlayerSprite = function(gl, program, w, h) {
   };
 }
 
+// create mesh draw
+var createMesh = function(gl, program, field, textureID, oy = 0.0){
+  let heights = field.heights;
+  let normals = field.normals;
+  let diffuse = field.diffuse;
+  let specular = field.specular;
+  let shininess = field.shininess;
+  let size = heights.length-1;
+  let tempVertices = [];
+  let tempTexCoords = [];
+  let tempIndices = [];
+  let tempNormals = [];
+  let i = 0;
+  for (let z = 0; z < size; z++) {
+    for (let x = 0; x < size; x++) {
+      y = heights[x][z];
+      tempVertices.push((x-size/2)/4, y+oy, (z-size/2)/4);
+      if (z<normals[x].length) {
+        tempTexCoords.push(10*x/size, 10*z/size);
+        tempNormals.push(normals[x][z][0],
+                         normals[x][z][1],
+                         normals[x][z][2]);
+      }else {
+        tempTexCoords.push(x/size, z/size);
+        tempNormals.push(0.0, 1.0, 0.0);
+      }
+      tempIndices.push(i+size, i);
+      i += 1;
+    }
+  }
+  var map = {
 
+      vertices : new Float32Array(tempVertices),
+      textureCoordinates: new Float32Array(tempTexCoords),
+      normals: new Float32Array(tempNormals),
+      indices: new Uint16Array(tempIndices),
+
+      dimensions: 3,
+    };
+
+  map.vertexBuffer = gl.createBuffer();
+  map.textureBuffer = gl.createBuffer();
+  map.normalBuffer = gl.createBuffer();
+  map.indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, map.vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, map.vertices, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, map.textureBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, map.textureCoordinates, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, map.normalBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, map.normals, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, map.indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, map.indices, gl.STATIC_DRAW);
+
+
+  return function(){
+
+    gl.uniform1i(program.u_Sampler, textureID);
+    gl.bindBuffer(gl.ARRAY_BUFFER, map.vertexBuffer);
+    // associate it with our position attribute
+    gl.vertexAttribPointer(program.a_Position, map.dimensions, gl.FLOAT, false, 0,0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, map.textureBuffer);
+    // associate it with our position attribute
+    gl.vertexAttribPointer(program.a_TexCoord, 2, gl.FLOAT, false, 0,0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, map.normalBuffer);
+    // associate it with our position attribute
+    gl.vertexAttribPointer(program.a_Normal, map.dimensions, gl.FLOAT, false, 0,0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, map.indexBuffer);
+
+    for (let s = 0; s < size-1; s++) {
+      gl.drawElements(gl.TRIANGLE_STRIP, size*2, gl.UNSIGNED_SHORT, s*size*4);
+    }
+  };
+};
 
 window.onload = function(){
   let canvas = document.getElementById('canvas');
@@ -236,10 +306,10 @@ window.onload = function(){
   program.u_Specular = gl.getUniformLocation(program, 'u_Specular');
 
 
-  gl.uniform3f(program.u_LightDirection, 0.0, 1.0, 0.0);
-  // gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
-  gl.uniform3f(program.u_Ambient, 0.9, 0.9, 0.9);
-  // gl.uniform3f(program.u_Diffuse, 0.7, 0.7, 0.7);
+  gl.uniform3f(program.u_LightDirection, 0.5, 1.0, -0.5);
+  gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
+  // gl.uniform3f(program.u_Ambient, 0.9, 0.9, 0.9);
+  gl.uniform3f(program.u_Diffuse, 0.7, 0.7, 0.7);
   // gl.uniform3f(program.u_Specular, 0.8, 0.8, 0.8);
 
 
@@ -260,20 +330,28 @@ window.onload = function(){
   // create game object (stores layout, player, NPCs)
   game = createGame();
 
-
+  // create animation handler
   animation = createAnimation();
 
+  // create sound handler
+  sound = createSound();
+
+
+  platform = createPlatform();
+  water = createWater();
 
   var now = 0;
   var then = 0;
   drawGrass = createFloor(gl, program, 5.0);
   drawPlayer = createPlayerSprite(gl, program, 1.0, 1.0);
+  drawPlatform = createMesh(gl, program, platform, 0);
+  drawWater = createMesh(gl, program, water, 2, -1.0);
   let render = function(now){
     if (then)
       var elapsed = now - then;
     then = now;
 
-    game.update(elapsed, keyMap);
+    game.update(elapsed, keyMap, sound);
 
     camera.update(game);
 
@@ -294,7 +372,8 @@ window.onload = function(){
     gl.uniformMatrix4fv(u_View, false, view);
 
 
-    drawGrass();
+    drawPlatform();
+    drawWater();
     drawPlayer(game.player.position(),
       animation.getPlayerFrame());
 
@@ -325,6 +404,22 @@ window.onload = function(){
     gl.bindTexture(gl.TEXTURE_2D, texture_grass);
     // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_grass);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+
+    image_water.src = 'water.jpg';
+  };
+
+  // load textures
+  let texture_water = gl.createTexture();
+  let image_water = new Image();
+
+  image_water.onload = ()=>{
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, texture_water);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_water);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
 

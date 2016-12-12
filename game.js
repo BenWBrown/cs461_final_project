@@ -42,8 +42,9 @@ createPlayer = function() {
     }
   };
 
-  let punch = function () {
+  let punch = function (sound) {
     console.log("punch");
+    sound.punch();
     punch_countdown = 150;
   };
 
@@ -72,7 +73,7 @@ createPlayer = function() {
     }
 
     if (keyMap[' '.charCodeAt(0)]){
-      punch();
+      punch(sound);
       keyMap[' '.charCodeAt(0)] = false; // only jump once per press
     }
 
@@ -109,8 +110,8 @@ createPlayer = function() {
       }
       return result;
     },
-    update: (elapsed, keyMap, environment, npcs) => {
-      updateInput(keyMap, elapsed);
+    update: (elapsed, keyMap, sound, environment, npcs) => {
+      updateInput(keyMap, elapsed, sound);
       if (jump_count) {
         updateFall(elapsed);
         checkLanding(environment, npcs);
@@ -151,10 +152,10 @@ createGame = function() {
 
   return {
     player: player,
-    update: (elapsed, keyMap) => {
+    update: (elapsed, keyMap, sound) => {
       // updateInput(keyMap, elapsed);
-      player.update(elapsed, keyMap, environment, npcs);
-      if (keyMap['W'.charCodeAt(0)]){
+      player.update(elapsed, keyMap, sound, environment, npcs);
+      if (keyMap['F'.charCodeAt(0)]){
         player.back(elapsed);
       }
     }
