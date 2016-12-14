@@ -101,7 +101,7 @@ var createPlayerSprite = function(gl, program, w, h) {
     h : h,
 
     normals : new Float32Array([
-      0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0, 0.0
+      0.0, 0.5, 0.0,  0.0, 0.5, 0.0,  0.0, 0.5, 0.0,  0.0, 0.5, 0.0
     ]),
 
     indices : new Uint8Array([
@@ -120,6 +120,7 @@ var createPlayerSprite = function(gl, program, w, h) {
 
   return function(pos, frame){
     gl.uniform1i(program.u_Sampler, 1); // texture 1: player
+    gl.uniform1i(program.u_NormalMap, 3); // texture 3: player normal map
 
 
     // finish filling buffers
@@ -224,6 +225,9 @@ var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
   return function(){
 
     gl.uniform1i(program.u_Sampler, textureID);
+    gl.uniform1i(program.u_NormalMap, 4); // texture 4: blank normal map
+
+
     gl.bindBuffer(gl.ARRAY_BUFFER, map.vertexBuffer);
     // associate it with our position attribute
     gl.vertexAttribPointer(program.a_Position, map.dimensions, gl.FLOAT, false, 0,0);
@@ -298,7 +302,8 @@ window.onload = function(){
 
 
   program.u_Sampler = gl.getUniformLocation(program, 'u_Sampler');
-  program.u_TransparentColor = gl.getUniformLocation(program, 'u_TransparentColor');
+  program.u_NormalMap = gl.getUniformLocation(program, 'u_NormalMap');
+  // program.u_TransparentColor = gl.getUniformLocation(program, 'u_TransparentColor');
 
 
   program.u_LightDirection = gl.getUniformLocation(program, "u_LightDirection");
@@ -307,10 +312,10 @@ window.onload = function(){
   program.u_Specular = gl.getUniformLocation(program, 'u_Specular');
 
 
-  gl.uniform3f(program.u_LightDirection, 0.5, 1.0, -0.5);
-  gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
+  gl.uniform3f(program.u_LightDirection, 0.5, 1.0, 0.5);
+  gl.uniform3f(program.u_Ambient, 0.1, 0.1, 0.1);
   // gl.uniform3f(program.u_Ambient, 0.9, 0.9, 0.9);
-  gl.uniform3f(program.u_Diffuse, 0.7, 0.7, 0.7);
+  gl.uniform3f(program.u_Diffuse, 0.6, 0.6, 0.7);
   // gl.uniform3f(program.u_Specular, 0.8, 0.8, 0.8);
 
 
@@ -359,6 +364,12 @@ window.onload = function(){
       var elapsed = now - then;
     then = now;
 
+
+    // lighting demo:
+    angle = (Math.PI/2) * now/1000;
+    gl.uniform3f(program.u_LightDirection, Math.cos(angle), Math.abs(Math.sin(angle)), 0.4);
+
+
     game.update(elapsed, keyMap, sound);
 
     camera.update(game);
@@ -399,9 +410,36 @@ window.onload = function(){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_player);
 
-    render();
+    image_normals_player.src = '../images/player-normals.png';
   };
 
+  let normals_player = gl.createTexture();
+  let image_normals_player = new Image();
+
+  image_normals_player.onload = ()=>{
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, normals_player);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image_normals_player);
+
+    image_blank_normals.src = '../images/blank_normal.png';
+  };
+
+  let normals_blank = gl.createTexture();
+  let image_blank_normals = new Image();
+
+  image_blank_normals.onload = ()=>{
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, normals_blank);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image_blank_normals);
+
+    render();
+  };
   // load textures
   let texture_grass = gl.createTexture();
   let image_grass = new Image();
