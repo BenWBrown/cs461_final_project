@@ -131,7 +131,7 @@ createEnvironment = function() {
     heightAt: (xCoord)=>{
       if (xCoord < 0) {
         let x = Math.floor(1-Math.floor(xCoord) / height.length) * height.length;
-        xCoord += x;//I think this works but haven't tested it yet
+        xCoord += x; //I think this works but haven't tested it yet
       }
       let left = Math.floor(xCoord) % height.length;
       let right = Math.ceil(xCoord) % height.length;

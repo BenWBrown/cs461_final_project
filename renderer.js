@@ -171,6 +171,7 @@ var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
   let specular = field.specular;
   let shininess = field.shininess;
   let size = heights.length-1;
+  let scale = field.scale ? field.scale : 1;
   let tempVertices = [];
   let tempTexCoords = [];
   let tempIndices = [];
@@ -179,7 +180,7 @@ var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
   for (let z = 0; z < size; z++) {
     for (let x = 0; x < size; x++) {
       y = heights[x][z];
-      tempVertices.push((x-size/2)/4 + ox, y+oy, (z-size/2)/4);
+      tempVertices.push((x-size/2) * scale + ox, y+oy, (z-size/2) * scale);
       if (z<normals[x].length) {
         tempTexCoords.push(10*x/size, 10*z/size);
         tempNormals.push(normals[x][z][0],
@@ -337,9 +338,9 @@ window.onload = function(){
   sound = createSound();
 
 
-  platform1 = createPlatform(game, 0, 0, 2); //game, textureID, y-offset, x-offset
-  platform2 = createPlatform(game, 0, 0, -3); //game, textureID, y-offset, x-offset
-  water = createWater();
+  platform1 = createPlatform(game, 0, 0, 2, 0.25); //game, textureID, y-offset, x-offset, scale
+  platform2 = createPlatform(game, 0, 0, -3, 0.25); //game, textureID, y-offset, x-offset, scale
+  water = createWater(game, 2, -1.0, 0, 0.25);
 
   var now = 0;
   var then = 0;
@@ -352,7 +353,7 @@ window.onload = function(){
     });
   };
   //drawPlatforms = createMesh(gl, program, platform1, platform1.textureID, platform1.yOffset, platform1.xOffset);
-  drawWater = createMesh(gl, program, water, 2, -1.0);
+  drawWater = createMesh(gl, program, water, water.textureID, water.yOffset);
   let render = function(now){
     if (then)
       var elapsed = now - then;
