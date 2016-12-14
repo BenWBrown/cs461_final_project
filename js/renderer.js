@@ -64,7 +64,8 @@ var createFloor = function(gl, program, size){
 
 
   return function(){
-    gl.uniform1i(program.u_Sampler, 0); // texture 0: floor
+    gl.uniform1i(program.u_Sampler, 1); // texture 0: grass
+    gl.uniform1i(program.u_NormalMap, 0); // texture 4: blank normal map
     gl.bindBuffer(gl.ARRAY_BUFFER, floor.vertexBuffer);
     gl.vertexAttribPointer(program.a_Position, 3, gl.FLOAT, false, 0,0);
 
@@ -119,8 +120,8 @@ var createPlayerSprite = function(gl, program, w, h) {
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, player.indices, gl.STATIC_DRAW);
 
   return function(pos, frame){
-    gl.uniform1i(program.u_Sampler, 1); // texture 1: player
-    gl.uniform1i(program.u_NormalMap, 3); // texture 3: player normal map
+    gl.uniform1i(program.u_Sampler, 3); // texture 3: player
+    gl.uniform1i(program.u_NormalMap, 4); // texture 4: player normal map
 
 
     // finish filling buffers
@@ -225,7 +226,7 @@ var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
   return function(){
 
     gl.uniform1i(program.u_Sampler, textureID);
-    gl.uniform1i(program.u_NormalMap, 4); // texture 4: blank normal map
+    gl.uniform1i(program.u_NormalMap, 0); // texture 4: blank normal map
 
 
     gl.bindBuffer(gl.ARRAY_BUFFER, map.vertexBuffer);
@@ -247,6 +248,41 @@ var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
     }
   };
 };
+
+
+function initializeTexture(gl, textureid, filename, use_mipmap) {
+  return new Promise(function(resolve, reject){
+    var texture = gl.createTexture();
+
+    var image = new Image();
+    image.onload = function(){
+
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
+        gl.activeTexture(textureid);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        if (use_mipmap) {
+          gl.generateMipmap(gl.TEXTURE_2D);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        }
+        resolve();
+    }
+
+
+    image.onerror = function(error){
+
+        reject(Error(filename));
+    }
+
+    image.src = filename;
+  });
+}
+
+
+
 
 window.onload = function(){
   let canvas = document.getElementById('canvas');
@@ -295,6 +331,7 @@ window.onload = function(){
   // gl.enable(gl.BLEND);
 
   gl.clearColor(0.4,0.6,1,1); // sky color
+  gl.clearColor(0.0,0.0,0.0,1); // black
 
   let u_Transform = gl.getUniformLocation(program, 'u_Transform');
   let u_Projection = gl.getUniformLocation(program, 'u_Projection');
@@ -343,8 +380,8 @@ window.onload = function(){
   sound = createSound();
 
 
-  platform1 = createPlatform(game, 0, 0, 2, 0.25); //game, textureID, y-offset, x-offset, scale
-  platform2 = createPlatform(game, 0, 0, -3, 0.25); //game, textureID, y-offset, x-offset, scale
+  platform1 = createPlatform(game, 1, 0, 2, 0.25); //game, textureID, y-offset, x-offset, scale
+  platform2 = createPlatform(game, 1, 0, -3, 0.25); //game, textureID, y-offset, x-offset, scale
   water = createWater(game, 2, -1.0, 0, 0.25);
 
   var now = 0;
@@ -366,8 +403,8 @@ window.onload = function(){
 
 
     // lighting demo:
-    angle = (Math.PI/2) * now/1000;
-    gl.uniform3f(program.u_LightDirection, Math.cos(angle), Math.abs(Math.sin(angle)), 0.4);
+    // angle = (Math.PI/2) * now/2000;
+    // gl.uniform3f(program.u_LightDirection, Math.cos(angle), Math.abs(Math.sin(angle)), 0.4);
 
 
     game.update(elapsed, keyMap, sound);
@@ -383,7 +420,7 @@ window.onload = function(){
     gl.uniformMatrix4fv(u_Transform, false, mat4.create());
 
     let projection = mat4.create();
-    mat4.perspective(projection, Math.PI/3,1, 0.1,55);
+    mat4.perspective(projection, Math.PI/3,1, 0.1,75);
     gl.uniformMatrix4fv(u_Projection, false, projection);
 
     let view = mat4.create();
@@ -399,78 +436,15 @@ window.onload = function(){
     requestAnimationFrame(render);
   };
 
-  let texture_player = gl.createTexture();
-  let image_player = new Image();
 
-  image_player.onload = ()=>{
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, texture_player);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_player);
+  Promise.all([
+    initializeTexture(gl, gl.TEXTURE0, '../images/blank_normal.png'),
+    initializeTexture(gl, gl.TEXTURE1,'../images/grass.png', true),
+    initializeTexture(gl, gl.TEXTURE2,'../images/water.jpg', true),
+    initializeTexture(gl, gl.TEXTURE3,'../images/player.png'),
+    initializeTexture(gl, gl.TEXTURE4,'../images/player-normals.png')
 
-    image_normals_player.src = '../images/player-normals.png';
-  };
-
-  let normals_player = gl.createTexture();
-  let image_normals_player = new Image();
-
-  image_normals_player.onload = ()=>{
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, normals_player);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image_normals_player);
-
-    image_blank_normals.src = '../images/blank_normal.png';
-  };
-
-  let normals_blank = gl.createTexture();
-  let image_blank_normals = new Image();
-
-  image_blank_normals.onload = ()=>{
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
-    gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_2D, normals_blank);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image_blank_normals);
-
-    render();
-  };
-  // load textures
-  let texture_grass = gl.createTexture();
-  let image_grass = new Image();
-
-  image_grass.onload = ()=>{
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture_grass);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_grass);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-
-    image_water.src = '../images/water.jpg';
-  };
-
-  // load textures
-  let texture_water = gl.createTexture();
-  let image_water = new Image();
-
-  image_water.onload = ()=>{
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, texture_water);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_water);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-
-    image_player.src = '../images/player.png';
-  };
-
-  image_grass.src = '../images/grass.png';
+    ])
+    .then(function () {render();})
+    .catch(function (error) {alert('Failed to load texture '+  error.message);});
 }
