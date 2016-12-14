@@ -164,7 +164,7 @@ var createPlayerSprite = function(gl, program, w, h) {
 }
 
 // create mesh draw
-var createMesh = function(gl, program, field, textureID, oy = 0.0){
+var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
   let heights = field.heights;
   let normals = field.normals;
   let diffuse = field.diffuse;
@@ -179,7 +179,7 @@ var createMesh = function(gl, program, field, textureID, oy = 0.0){
   for (let z = 0; z < size; z++) {
     for (let x = 0; x < size; x++) {
       y = heights[x][z];
-      tempVertices.push((x-size/2)/4, y+oy, (z-size/2)/4);
+      tempVertices.push((x-size/2)/4 + ox, y+oy, (z-size/2)/4);
       if (z<normals[x].length) {
         tempTexCoords.push(10*x/size, 10*z/size);
         tempNormals.push(normals[x][z][0],
@@ -337,14 +337,21 @@ window.onload = function(){
   sound = createSound();
 
 
-  platform = createPlatform();
+  platform1 = createPlatform(game, 0, 0, 2); //game, textureID, y-offset, x-offset
+  platform2 = createPlatform(game, 0, 0, -3); //game, textureID, y-offset, x-offset
   water = createWater();
 
   var now = 0;
   var then = 0;
-  drawGrass = createFloor(gl, program, 5.0);
+  //drawGrass = createFloor(gl, program, 5.0);
   drawPlayer = createPlayerSprite(gl, program, 1.0, 1.0);
-  drawPlatform = createMesh(gl, program, platform, 0);
+  drawPlatforms = function() {
+    game.platforms.forEach(function(platform) {
+      var drawMesh = createMesh(gl, program, platform, platform.textureID, platform.yOffset, platform.xOffset)
+      drawMesh();
+    });
+  };
+  //drawPlatforms = createMesh(gl, program, platform1, platform1.textureID, platform1.yOffset, platform1.xOffset);
   drawWater = createMesh(gl, program, water, 2, -1.0);
   let render = function(now){
     if (then)
@@ -372,7 +379,7 @@ window.onload = function(){
     gl.uniformMatrix4fv(u_View, false, view);
 
 
-    drawPlatform();
+    drawPlatforms();
     drawWater();
     drawPlayer(game.player.position(),
       animation.getPlayerFrame());
