@@ -415,7 +415,7 @@ window.onload = function(){
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
 
-    image_water.src = 'water.jpg';
+    image_water.src = '../images/water.jpg';
   };
 
   // load textures
@@ -431,8 +431,8 @@ window.onload = function(){
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
 
-    image_player.src = 'player.png';
+    image_player.src = '../images/player.png';
   };
 
-  image_grass.src = 'grass.png';
+  image_grass.src = '../images/grass.png';
 }
