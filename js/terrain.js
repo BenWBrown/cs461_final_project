@@ -190,7 +190,7 @@ var getAverageNormals = function(triangleNormals) {
 
 
 
-var createPlatform = function(game, textureID, size, yOffset, xOffset, scale, roughness) {
+var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, scale, roughness) {
   let map = buildHeightfield(size, (roughness ? roughness : -0.1));
   cliffEdges(map);
   let triangleNormals = getTriangleNormals(map);
@@ -200,6 +200,7 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, scale, ro
     size: size,
     yOffset: yOffset,
     xOffset: xOffset,
+    zOffset: zOffset,
     scale: scale,
     heights: map,
     normals: getAverageNormals(triangleNormals),
@@ -223,7 +224,7 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, scale, ro
   return platform;
 }
 
-var createWater = function(game, textureID, size, yOffset, xOffset, scale, roughness) {
+var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, scale, roughness) {
   let map = buildHeightfield(size, (roughness ? roughness : -0.05));
   let triangleNormals = getTriangleNormals(map);
   var normals = getAverageNormals(triangleNormals);
@@ -231,6 +232,7 @@ var createWater = function(game, textureID, size, yOffset, xOffset, scale, rough
     textureID: textureID,
     yOffset: yOffset,
     xOffset: xOffset,
+    zOffset: zOffset,
     scale: scale,
     heights: map,
     normals: getAverageNormals(triangleNormals),

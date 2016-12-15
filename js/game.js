@@ -1,4 +1,5 @@
 let EPS = 0.00001;
+let MIN_HEIGHT = -0.5;
 
 // create Game object
 createGame = function() {
@@ -26,8 +27,11 @@ createGame = function() {
       if (!checkCollision(x, x+dx)) {
         x += dx;
         if (!jump_count && onPlatform) {
-          var height = heightAt(onPlatform, x, z);
-          y = height;
+          if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
+            y = heightAt(onPlatform, x, z);
+          } else {
+            fall();
+          }
         }
       }
       facing = 1;
@@ -37,13 +41,21 @@ createGame = function() {
       if (!checkCollision(x, x+dx)) {
         x += dx;
         if (!jump_count && onPlatform) {
-          var height = heightAt(onPlatform, x, z);
-          y = height;
+          if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
+            y = heightAt(onPlatform, x, z);
+          } else {
+            fall();
+          }
         }
       }
       facing = 0;
     };
 
+    let fall = function () {
+      vy = 0;
+      jump_count++;
+      onPlatform = undefined;
+    }
 
     let jump = function () {
       if (jump_count < 2) {
@@ -99,9 +111,10 @@ createGame = function() {
         }
 
         if (y <= -3) { //TODO: USE WATER HEIGHT
+          //TODO: LOSE A LIFE
           jump_count = 0;
           vy = 0;
-          y = -0.5;
+          y = -3;
         }
       });
     };

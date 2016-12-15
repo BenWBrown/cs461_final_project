@@ -166,7 +166,11 @@ var createPlayerSprite = function(gl, program, w, h) {
 }
 
 // create mesh draw
-var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
+var createMesh = function(gl, program, field){
+  let textureID = field.textureID;
+  let oy = field.yOffset;
+  let ox = field.xOffset;
+  let oz = field.zOffset;
   let heights = field.heights;
   let normals = field.normals;
   let diffuse = field.diffuse;
@@ -182,7 +186,7 @@ var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
   for (let z = 0; z < size; z++) {
     for (let x = 0; x < size; x++) {
       y = heights[x][z];
-      tempVertices.push((x) * scale + ox, y+oy, (z) * scale);
+      tempVertices.push(x * scale + ox, y+oy, z * scale + oz);
       if (z<normals[x].length) {
         tempTexCoords.push(10*x/size, 10*z/size);
         tempNormals.push(normals[x][z][0],
@@ -380,9 +384,13 @@ window.onload = function(){
   sound = createSound();
 
 
-  platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, scale
-  platform2 = createPlatform(game, 1, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, scale
-  water = createWater(game, 2, 7, -1.0, 0, 0.25);
+  for (var i = 0; i < 10; i++) {
+    createPlatform(game, 1, 4, 0, i * 4, 0, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
+  }
+
+  // platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, z-offset, scale
+  // platform2 = createPlatform(game, 1, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
+  water = createWater(game, 2, 7, -1.0, 0, 0, 0.25);
 
   var now = 0;
   var then = 0;
@@ -390,12 +398,12 @@ window.onload = function(){
   drawPlayer = createPlayerSprite(gl, program, 1.0, 1.0);
   drawPlatforms = function() {
     game.platforms.forEach(function(platform) {
-      var drawMesh = createMesh(gl, program, platform, platform.textureID, platform.yOffset, platform.xOffset)
+      var drawMesh = createMesh(gl, program, platform)
       drawMesh();
     });
   };
   //drawPlatforms = createMesh(gl, program, platform1, platform1.textureID, platform1.yOffset, platform1.xOffset);
-  drawWater = createMesh(gl, program, water, water.textureID, water.yOffset);
+  drawWater = createMesh(gl, program, water);
   let render = function(now){
     if (then)
       var elapsed = now - then;
