@@ -2,7 +2,6 @@ let EPS = 0.00001;
 
 // create Game object
 createGame = function() {
-  let foo = 4;
   // create Player object
   let createPlayer = function() {
     let hp = 100,
@@ -11,7 +10,7 @@ createGame = function() {
       x = 0.0,
       y = 0.0,
       z = 1.0,
-      vx = 1.0, // unit/s
+      vx = 2.0, // unit/s
       vy = 0.0, // unit/s
       ay = -9.81, // gravity acceleration (unit/s^2)
       jump_count = 0,

@@ -192,7 +192,7 @@ var getAverageNormals = function(triangleNormals) {
 
 var createPlatform = function(game, textureID, size, yOffset, xOffset, scale, roughness) {
   let map = buildHeightfield(size, (roughness ? roughness : -0.1));
-  //cliffEdges(map);
+  cliffEdges(map);
   let triangleNormals = getTriangleNormals(map);
   var normals = getAverageNormals(triangleNormals);
   let platform = {
