@@ -216,7 +216,7 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, scale, ro
       let left = Math.floor(x) % map.length;
       let right = Math.ceil(x) % map.length;
       let weight = 1 - (x - left);
-      return map[left][y] * weight + map[right][y] * (1 - weight);
+      return map[left][y] * weight + map[right][y] * (1 - weight) + yOffset;
     }
   }
   game.addPlatform(platform);

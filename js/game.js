@@ -85,7 +85,7 @@ createGame = function() {
         over.clear()
       }
 
-      if (y <= -0.5) { //TODO: USE WATER HEIGHT
+      if (y <= -1) { //TODO: USE WATER HEIGHT
         jump_count = 0;
         vy = 0;
         y = -0.5;
