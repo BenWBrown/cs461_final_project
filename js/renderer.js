@@ -331,7 +331,7 @@ window.onload = function(){
   // gl.enable(gl.BLEND);
 
   gl.clearColor(0.4,0.6,1,1); // sky color
-  gl.clearColor(0.0,0.0,0.0,1); // black
+  // gl.clearColor(0.0,0.0,0.1,1); // black
 
   let u_Transform = gl.getUniformLocation(program, 'u_Transform');
   let u_Projection = gl.getUniformLocation(program, 'u_Projection');
@@ -350,9 +350,9 @@ window.onload = function(){
 
 
   gl.uniform3f(program.u_LightDirection, 0.5, 1.0, 0.5);
-  gl.uniform3f(program.u_Ambient, 0.1, 0.1, 0.1);
+  gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
   // gl.uniform3f(program.u_Ambient, 0.9, 0.9, 0.9);
-  gl.uniform3f(program.u_Diffuse, 0.6, 0.6, 0.7);
+  gl.uniform3f(program.u_Diffuse, 0.8, 0.8, 0.8);
   // gl.uniform3f(program.u_Specular, 0.8, 0.8, 0.8);
 
 
@@ -403,8 +403,8 @@ window.onload = function(){
 
 
     // lighting demo:
-    // angle = (Math.PI/2) * now/2000;
-    // gl.uniform3f(program.u_LightDirection, Math.cos(angle), Math.abs(Math.sin(angle)), 0.4);
+    angle = (Math.PI/2) * now/2000;
+    gl.uniform3f(program.u_LightDirection, Math.cos(angle), Math.abs(Math.sin(angle)), 0.4);
 
 
     game.update(elapsed, keyMap, sound);

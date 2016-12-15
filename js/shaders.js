@@ -80,7 +80,7 @@ void main(){
 
   ambient = color * light_ambient;
   diffuse = color * max(dot(L, N), 0.0) * light_diffuse;
-  diffuse /= (1.0+0.05*dist*dist); // distance attenuation
+  // diffuse /= (1.0+0.05*dist*dist); // distance attenuation, need to sort this out
   specular = max(color * pow(max(dot(N, H), 0.0), shininess) * light_specular, 0.0) ;
 
 
