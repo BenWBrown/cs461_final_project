@@ -206,7 +206,7 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, scale, ro
     diffuse: [0.9, 0.9, 0.9],
     specular: [0.8, 0.8, 0.8],
     shininess: 100.0,
-    heightAt: (xCoord, yCoord) => { //TODO: MAKE SURE THIS ACTUALLY WORKS. also, maybe interpolate in Y
+    heightAtIndices: (xCoord, yCoord) => { //TODO: MAKE SURE THIS ACTUALLY WORKS. also, maybe interpolate in Y
       let y = Math.floor(yCoord);
       let x = xCoord;
       if (xCoord < 0) {

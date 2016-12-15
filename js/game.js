@@ -16,6 +16,7 @@ createGame = function() {
       jump_count = 0,
       facing = 1,
       over = new Set();
+      onPlatform = undefined;
 
       punch_countdown = 0;
 
@@ -24,7 +25,10 @@ createGame = function() {
       dx = -vx*elapsed/1000;
       if (!checkCollision(x, x+dx)) {
         x += dx;
-        // console.log(x);
+        if (!jump_count && onPlatform) {
+          var height = heightAt(onPlatform, x, z);
+          y = height;
+        }
       }
       facing = 1;
     };
@@ -32,7 +36,10 @@ createGame = function() {
       dx = vx*elapsed/1000;
       if (!checkCollision(x, x+dx)) {
         x += dx;
-        // console.log(x);
+        if (!jump_count && onPlatform) {
+          var height = heightAt(onPlatform, x, z);
+          y = height;
+        }
       }
       facing = 0;
     };
@@ -43,6 +50,7 @@ createGame = function() {
         console.log("jump");
         vy = 3.0;
         jump_count++;
+        onPlatform = undefined;
       }
     };
 
@@ -56,12 +64,16 @@ createGame = function() {
       return false;
     };
 
+    let heightAt = function(platform, x, z) {
+      var xIndex = (x - platform.xOffset) / platform.scale;
+      var zIndex = (z / platform.scale);
+      return platform.heightAtIndices(xIndex, zIndex);
+    }
+
     let overPlatform = function(platform) {
       var newX = x - platform.xOffset;
       var xMax = (platform.heights.length -2) * platform.scale;
-      var xIndex = (x - platform.xOffset) / platform.scale;
-      var zIndex = (z / platform.scale);
-      var height = platform.heightAt(xIndex, zIndex);
+      var height = heightAt(platform, x, z);
       //console.log(zIndex, platform.heightAt(xIndex, zIndex));
       if (0 < newX && newX < xMax && y > height - EPS) {
         return "over";
@@ -81,11 +93,12 @@ createGame = function() {
 
         jump_count = 0;
         vy = 0;
-        y = platform.heightAt(xIndex, zIndex);
+        y = platform.heightAtIndices(xIndex, zIndex);
+        onPlatform = platform;
         over.clear()
       }
 
-      if (y <= -1) { //TODO: USE WATER HEIGHT
+      if (y <= -3) { //TODO: USE WATER HEIGHT
         jump_count = 0;
         vy = 0;
         y = -0.5;
