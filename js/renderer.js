@@ -180,7 +180,7 @@ var createMesh = function(gl, program, field, textureID, oy = 0.0, ox = 0.0){
   for (let z = 0; z < size; z++) {
     for (let x = 0; x < size; x++) {
       y = heights[x][z];
-      tempVertices.push((x-size/2) * scale + ox, y+oy, (z-size/2) * scale);
+      tempVertices.push((x) * scale + ox, y+oy, (z) * scale);
       if (z<normals[x].length) {
         tempTexCoords.push(10*x/size, 10*z/size);
         tempNormals.push(normals[x][z][0],
@@ -338,9 +338,9 @@ window.onload = function(){
   sound = createSound();
 
 
-  platform1 = createPlatform(game, 0, 0, 2, 0.25); //game, textureID, y-offset, x-offset, scale
-  platform2 = createPlatform(game, 0, 0, -3, 0.25); //game, textureID, y-offset, x-offset, scale
-  water = createWater(game, 2, -1.0, 0, 0.25);
+  platform1 = createPlatform(game, 0, 4, 0, -1, 0.25);  //game, textureID, size, y-offset, x-offset, scale
+  //platform2 = createPlatform(game, 0, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, scale
+  water = createWater(game, 2, 7, -1.0, 0, 0.25);
 
   var now = 0;
   var then = 0;
