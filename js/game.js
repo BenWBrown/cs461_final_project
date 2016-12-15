@@ -10,7 +10,7 @@ createGame = function() {
       // w = 0.5;
       x = 0.0,
       y = 0.0,
-      z = 1.0,
+      z = 2.0,
       vx = 2.0, // unit/s
       vy = 0.0, // unit/s
       ay = -9.81, // gravity acceleration (unit/s^2)
@@ -66,7 +66,7 @@ createGame = function() {
       }
     };
 
-    let punch = function (sound) {
+    let punch = function () {
       console.log("punch");
       sound.punch();
       punch_countdown = 150;
@@ -132,14 +132,14 @@ createGame = function() {
       vy += ay*elapsed/1000;
     };
 
-    let updateInput = function(keyMap, elapsed) {
+    let updateInput = function(elapsed) {
       if (keyMap['W'.charCodeAt(0)]){
         jump();
         keyMap['W'.charCodeAt(0)] = false; // only jump once per press
       }
 
       if (keyMap[' '.charCodeAt(0)]){
-        punch(sound);
+        punch();
         keyMap[' '.charCodeAt(0)] = false; // only jump once per press
       }
 
@@ -163,7 +163,7 @@ createGame = function() {
         dz = 3*elapsed/1000;
         z -= dz;
       },
-      getState: (keyMap) => { // used for animating sprite
+      getState: () => { // used for animating sprite
         result = [0, 0];
         result[0] = facing;
         if (punch_countdown) {
@@ -176,8 +176,8 @@ createGame = function() {
         }
         return result;
       },
-      update: (elapsed, keyMap, sound, environment, npcs) => {
-        updateInput(keyMap, elapsed, sound);
+      update: (elapsed, environment, npcs) => {
+        updateInput(elapsed);
         if (jump_count) {
           updateFall(elapsed);
           checkLanding();
@@ -215,9 +215,9 @@ createGame = function() {
 
   return {
     player: player,
-    update: (elapsed, keyMap, sound) => {
+    update: (elapsed) => {
       // updateInput(keyMap, elapsed);
-      player.update(elapsed, keyMap, sound, environment, npcs);
+      player.update(elapsed, environment, npcs);
       if (keyMap['F'.charCodeAt(0)]){
         player.back(elapsed);
       }

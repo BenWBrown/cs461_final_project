@@ -1,6 +1,6 @@
 var createCamera = function() {
 
-  let position = [0.0, 1.5, 4.0];
+  let position = [0.0, 1.5, 5.5];
   return {
     set: (pos) => {
       position = pos;
@@ -166,7 +166,7 @@ var createPlayerSprite = function(gl, program, w, h) {
 }
 
 // create mesh draw
-var createMesh = function(gl, program, field){
+var createMesh = function(gl, program, field, texStretch = 2.0){
   let textureID = field.textureID;
   let oy = field.yOffset;
   let ox = field.xOffset;
@@ -188,7 +188,7 @@ var createMesh = function(gl, program, field){
       y = heights[x][z];
       tempVertices.push(x * scale + ox, y+oy, z * scale + oz);
       if (z<normals[x].length) {
-        tempTexCoords.push(10*x/size, 10*z/size);
+        tempTexCoords.push(texStretch*x/size, texStretch*z/size);
         tempNormals.push(normals[x][z][0],
                          normals[x][z][1],
                          normals[x][z][2]);
@@ -334,7 +334,7 @@ window.onload = function(){
   // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   // gl.enable(gl.BLEND);
 
-  gl.clearColor(0.4,0.6,1,1); // sky color
+  gl.clearColor(0.3,0.5,0.9,1); // sky color
   // gl.clearColor(0.0,0.0,0.1,1); // black
 
   let u_Transform = gl.getUniformLocation(program, 'u_Transform');
@@ -363,10 +363,13 @@ window.onload = function(){
   camera = createCamera();
 
   // create key listener
-  var keyMap = {};
+  keyMap = {};
 
   window.onkeydown = function(e){
       keyMap[e.which] = true;
+      if (keyMap['Y'.charCodeAt(0)]) {
+        initializeTexture(gl, gl.TEXTURE3,'../images/player-white.png')
+      }
   }
 
   window.onkeyup = function(e){
@@ -390,7 +393,7 @@ window.onload = function(){
 
   // platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, z-offset, scale
   // platform2 = createPlatform(game, 1, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
-  water = createWater(game, 2, 7, -1.0, 0, 0, 0.25);
+  water = createWater(game, 2, 8, -1.0, -10, -20, 0.25);
 
   var now = 0;
   var then = 0;
@@ -403,7 +406,7 @@ window.onload = function(){
     });
   };
   //drawPlatforms = createMesh(gl, program, platform1, platform1.textureID, platform1.yOffset, platform1.xOffset);
-  drawWater = createMesh(gl, program, water);
+  drawWater = createMesh(gl, program, water, 10.0);
   let render = function(now){
     if (then)
       var elapsed = now - then;
@@ -415,7 +418,7 @@ window.onload = function(){
     gl.uniform3f(program.u_LightDirection, Math.cos(angle), Math.abs(Math.sin(angle)), 0.4);
 
 
-    game.update(elapsed, keyMap, sound);
+    game.update(elapsed);
 
     camera.update(game);
 
