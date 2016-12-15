@@ -86,23 +86,24 @@ createGame = function() {
 
     // check if player has hit the ground, a platform, or an NPC
     let checkLanding = function() {
-      let platform = platforms[0];
-      if (over.has(platform) && overPlatform(platform) == "under") {
-        var xIndex = (x - platform.xOffset) / platform.scale;
-        var zIndex = (z / platform.scale);
+      platforms.forEach(function(platform){
+        if (over.has(platform) && overPlatform(platform) == "under") {
+          var xIndex = (x - platform.xOffset) / platform.scale;
+          var zIndex = (z / platform.scale);
 
-        jump_count = 0;
-        vy = 0;
-        y = platform.heightAtIndices(xIndex, zIndex);
-        onPlatform = platform;
-        over.clear()
-      }
+          jump_count = 0;
+          vy = 0;
+          y = platform.heightAtIndices(xIndex, zIndex);
+          onPlatform = platform;
+          over.clear()
+        }
 
-      if (y <= -3) { //TODO: USE WATER HEIGHT
-        jump_count = 0;
-        vy = 0;
-        y = -0.5;
-      }
+        if (y <= -3) { //TODO: USE WATER HEIGHT
+          jump_count = 0;
+          vy = 0;
+          y = -0.5;
+        }
+      });
     };
 
     let updateFall = function(elapsed) {

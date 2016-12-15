@@ -380,8 +380,8 @@ window.onload = function(){
   sound = createSound();
 
 
-  platform1 = createPlatform(game, 1, 4, -0.5, -1, 1);  //game, textureID, size, y-offset, x-offset, scale
-  //platform2 = createPlatform(game, 0, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, scale
+  platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, scale
+  platform2 = createPlatform(game, 1, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, scale
   water = createWater(game, 2, 7, -1.0, 0, 0.25);
 
   var now = 0;
