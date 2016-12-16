@@ -1,5 +1,6 @@
 let EPS = 0.00001;
 let MIN_HEIGHT = -1.0;
+let PLAYER_SIZE = 0.5; //TODO: IS THERE A BETTER NUMBER?
 
 // create Game object
 createGame = function() {
@@ -78,31 +79,24 @@ createGame = function() {
 
     let left = function () {
       dx = -vx*elapsed/1000;
-      if (!checkCollision(x, dx)) {
-        x += dx;
-        if (!jump_count && onPlatform) {
-          if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
-            y = heightAt(onPlatform, x, z);
-          } else {
-            fall();
-          }
-        }
-      }
-      facing = 1;
+      walk(dx);
     };
+
     let right = function () {
       dx = vx*elapsed/1000;
+      walk(dx);
+    };
+
+    let walk = function(dx) {
       if (!checkCollision(x, dx)) {
         x += dx;
-        if (!jump_count && onPlatform) {
+        if (onPlatform) {
           if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
             y = heightAt(onPlatform, x, z);
-          } else {
-            fall();
           }
         }
       }
-      facing = 0;
+      facing = dx > 0 ? 0 : 1;
     };
 
     let fall = function () {
@@ -144,10 +138,12 @@ createGame = function() {
 
     let checkCollision = function(x, dx) {
       if (onPlatform && safety && ((x+20*dx) < onPlatform.xOffset ||
-          (x+20*dx) > onPlatform.xOffset + (onPlatform.heights.length -2) * onPlatform.scale))
+          (x+20*dx) > onPlatform.xOffset + (onPlatform.heights.length -2) * onPlatform.scale)) {
+        console.log("collide");
         return true;
-      else
+      } else {
         return false;
+      }
     };
 
     let heightAt = function(platform, x, z) {
@@ -229,6 +225,18 @@ createGame = function() {
       }
     }
 
+    let checkEnemies = function(enemies) {
+      let hit = false;
+      enemies.forEach(function(enemy) {
+        if (over.has(enemy.platform) || onPlatform == enemy.platform) {
+          if (Math.abs(enemy.position()[0] - x) < 0.2) {
+            hit = true;
+          }
+        }
+      });
+      return hit;
+    }
+
     return {
       animation: animation,
       position: () => {
@@ -253,8 +261,13 @@ createGame = function() {
         return result;
       },
       update: (enemies) => {
-        if (y < MIN_HEIGHT)
+        if (y < MIN_HEIGHT) {
           die();
+        }
+        if (!punch_countdown && checkEnemies(enemies)) {
+          //die();
+          console.log("hit enemy");
+        }
         updateInput();
         if (jump_count) {
           updateFall();
@@ -288,19 +301,15 @@ createGame = function() {
 
     let left = function () {
       dx = -vx*elapsed/1000;
-      if (!checkCollision(x, dx)) {
-        x += dx;
-        if (onPlatform) {
-          if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
-            y = heightAt(onPlatform, x, z);
-          }
-        }
-      }
-      facing = 1;
+      walk(dx);
     };
 
     let right = function () {
       dx = vx*elapsed/1000;
+      walk(dx);
+    };
+
+    let walk = function(dx) {
       if (!checkCollision(x, dx)) {
         x += dx;
         if (onPlatform) {
@@ -309,7 +318,7 @@ createGame = function() {
           }
         }
       }
-      facing = 0;
+      facing = dx > 0 ? 0 : 1;
     };
 
     let attack = function () {
@@ -339,6 +348,7 @@ createGame = function() {
 
     return {
       animation: animation,
+      platform: platform,
       position: () => {
         return [x, y, z];
       },

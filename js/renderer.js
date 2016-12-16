@@ -401,7 +401,7 @@ window.onload = function(){
 
   gl.uniform4fv(program.u_LightPosition, new Float32Array(game.lighting.position()));
 
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 1; i++) {
     createPlatform(game, 1, 4, 0, i * 4, 0, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
   }
 

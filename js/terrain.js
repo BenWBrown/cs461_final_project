@@ -102,7 +102,7 @@ var buildHeightfield = function(n, roughness, tame = false){
     }
     s /= 2;
   }
-  console.log(field);
+  //console.log(field);
   return field;
 }
 
