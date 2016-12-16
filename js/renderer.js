@@ -96,7 +96,7 @@ var createFloor = function(gl, program, size){
 };
 
 
-var createPlayerSprite = function(gl, program, w, h) {
+var createCharacterSprite = function(gl, program, w, h, texID) {
   let player = {
     w : w,
     h : h,
@@ -120,8 +120,8 @@ var createPlayerSprite = function(gl, program, w, h) {
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, player.indices, gl.STATIC_DRAW);
 
   return function(pos, frame){
-    gl.uniform1i(program.u_Sampler, 3); // texture 3: player
-    gl.uniform1i(program.u_NormalMap, 4); // texture 4: player normal map
+    gl.uniform1i(program.u_Sampler, texID); // sprite texture
+    gl.uniform1i(program.u_NormalMap, 4); // texture 4: character normal map
 
 
     // finish filling buffers
@@ -285,7 +285,42 @@ function initializeTexture(gl, textureid, filename, use_mipmap) {
   });
 }
 
+function initializeProgram(gl, vertexShader, fragmentShaderp) {
+  // don't catch this error since any problem here is a programmer error
+  let program = middUtils.initializeProgram(gl, vertexShader, fragmentShader);
 
+  // load referneces to the vertex attributes as properties of the program
+  program.a_Position = gl.getAttribLocation(program, 'a_Position');
+  if (program.a_Position < 0) {
+      console.log('Failed to get position storage location');
+      return -1;
+  }
+  // load referneces to the texture coordinate attributes as properties of the program
+  program.a_TexCoord = gl.getAttribLocation(program, 'a_TexCoord');
+  if (program.a_TexCoord < 0) {
+      console.log('Failed to get texture coordinate storage location');
+      return -1;
+  }
+  // specify the association between the VBO and the a_Normal attribute
+  program.a_Normal = gl.getAttribLocation(program, 'a_Normal');
+  if (program.a_Normal < 0) {
+      console.log('Failed to get normal storage location');
+      return -1;
+  }
+
+  program.u_Sampler = gl.getUniformLocation(program, 'u_Sampler');
+  program.u_NormalMap = gl.getUniformLocation(program, 'u_NormalMap');
+  // program.u_TransparentColor = gl.getUniformLocation(program, 'u_TransparentColor');
+
+
+  program.u_LightDirection = gl.getUniformLocation(program, "u_LightDirection");
+  program.u_LightPosition = gl.getUniformLocation(program, "u_LightPosition");
+  program.u_Ambient = gl.getUniformLocation(program, 'u_Ambient');
+  program.u_Diffuse = gl.getUniformLocation(program, 'u_Diffuse');
+  program.u_Specular = gl.getUniformLocation(program, 'u_Specular');
+
+  return program;
+}
 
 
 window.onload = function(){
@@ -299,32 +334,15 @@ window.onload = function(){
     return;
   }
 
-  // don't catch this error since any problem here is a programmer error
-  let program = middUtils.initializeProgram(gl, vertexShader, fragmentShader);
 
-  // load referneces to the vertex attributes as properties of the program
-  program.a_Position = gl.getAttribLocation(program, 'a_Position');
-  if (program.a_Position < 0) {
-      console.log('Failed to get position storage location');
-      return -1;
-  }
+  let program = initializeProgram(gl, vertexShader, fragmentShader);
+
   gl.enableVertexAttribArray(program.a_Position);
 
-  // load referneces to the texture coordinate attributes as properties of the program
-  program.a_TexCoord = gl.getAttribLocation(program, 'a_TexCoord');
-  if (program.a_TexCoord < 0) {
-      console.log('Failed to get texture coordinate storage location');
-      return -1;
-  }
+
   gl.enableVertexAttribArray(program.a_TexCoord);
 
 
-  // specify the association between the VBO and the a_Normal attribute
-  program.a_Normal = gl.getAttribLocation(program, 'a_Normal');
-  if (program.a_Normal < 0) {
-      console.log('Failed to get normal storage location');
-      return -1;
-  }
   gl.enableVertexAttribArray(program.a_Normal);
 
 
@@ -335,22 +353,14 @@ window.onload = function(){
   // gl.enable(gl.BLEND);
 
   gl.clearColor(0.3,0.5,0.9,1); // sky color
-  // gl.clearColor(0.0,0.0,0.1,1); // black
+  gl.clearColor(0.0,0.0,0.1,1); // black
 
   let u_Transform = gl.getUniformLocation(program, 'u_Transform');
   let u_Projection = gl.getUniformLocation(program, 'u_Projection');
   let u_View = gl.getUniformLocation(program, 'u_View');
 
 
-  program.u_Sampler = gl.getUniformLocation(program, 'u_Sampler');
-  program.u_NormalMap = gl.getUniformLocation(program, 'u_NormalMap');
-  // program.u_TransparentColor = gl.getUniformLocation(program, 'u_TransparentColor');
 
-
-  program.u_LightDirection = gl.getUniformLocation(program, "u_LightDirection");
-  program.u_Ambient = gl.getUniformLocation(program, 'u_Ambient');
-  program.u_Diffuse = gl.getUniformLocation(program, 'u_Diffuse');
-  program.u_Specular = gl.getUniformLocation(program, 'u_Specular');
 
 
   gl.uniform3f(program.u_LightDirection, 0.5, 1.0, 0.5);
@@ -377,6 +387,8 @@ window.onload = function(){
   }
 
 
+
+
   // create game object (stores layout, player, NPCs)
   game = createGame();
 
@@ -386,6 +398,8 @@ window.onload = function(){
   // create sound handler
   sound = createSound();
 
+
+  gl.uniform4fv(program.u_LightPosition, new Float32Array(game.lighting.position()));
 
   for (var i = 0; i < 10; i++) {
     createPlatform(game, 1, 4, 0, i * 4, 0, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
@@ -398,7 +412,8 @@ window.onload = function(){
   var now = 0;
   var then = 0;
   //drawGrass = createFloor(gl, program, 5.0);
-  drawPlayer = createPlayerSprite(gl, program, 1.0, 1.0);
+  drawPlayer = createCharacterSprite(gl, program, 1.0, 1.0, 3);
+  drawEnemy = createCharacterSprite(gl, program, 1.0, 1.0, 5);
   drawPlatforms = function() {
     game.platforms.forEach(function(platform) {
       var drawMesh = createMesh(gl, program, platform)
@@ -407,9 +422,12 @@ window.onload = function(){
   };
   //drawPlatforms = createMesh(gl, program, platform1, platform1.textureID, platform1.yOffset, platform1.xOffset);
   drawWater = createMesh(gl, program, water, 10.0);
+
+
+  elapsed = 0;
   let render = function(now){
     if (then)
-      var elapsed = now - then;
+      elapsed = now - then;
     then = now;
 
 
@@ -418,11 +436,13 @@ window.onload = function(){
     gl.uniform3f(program.u_LightDirection, Math.cos(angle), Math.abs(Math.sin(angle)), 0.4);
 
 
-    game.update(elapsed);
+    game.update();
+
+    gl.uniform4fv(program.u_LightPosition, new Float32Array(game.lighting.position()));
 
     camera.update(game);
 
-    animation.update(now, game.player.getState(keyMap));
+    animation.update(game, now, game.player.getState(keyMap));
 
 
     // draw:
@@ -442,7 +462,12 @@ window.onload = function(){
     drawPlatforms();
     drawWater();
     drawPlayer(game.player.position(),
-      animation.getPlayerFrame());
+      animation.getCharacterFrame(game.player));
+
+    game.enemies.forEach(function(enemy){
+      drawEnemy(enemy.position(),
+        animation.getCharacterFrame(enemy));
+    });
 
     requestAnimationFrame(render);
   };
@@ -453,7 +478,8 @@ window.onload = function(){
     initializeTexture(gl, gl.TEXTURE1,'../images/grass.png', true),
     initializeTexture(gl, gl.TEXTURE2,'../images/water.jpg', true),
     initializeTexture(gl, gl.TEXTURE3,'../images/player.png'),
-    initializeTexture(gl, gl.TEXTURE4,'../images/player-normals.png')
+    initializeTexture(gl, gl.TEXTURE4,'../images/player-normals.png'),
+    initializeTexture(gl, gl.TEXTURE5,'../images/skeleton.png')
 
     ])
     .then(function () {render();})

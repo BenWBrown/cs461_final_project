@@ -5,7 +5,6 @@ createSound = function() {
 
   return {
     punch: () => {
-      console.log("punched");
       snd_punch.play();
     },
   }

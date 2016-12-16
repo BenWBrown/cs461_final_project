@@ -7,70 +7,94 @@ createAnimation = function() {
   let walk_frame_duration = 125; // in milliseconds
 
 
-  let punch = false;
-  let punch_start = 0;
-  let punch_frame = 0;
-  let punch_frame_duration = 50; // in milliseconds
+  // let punch = false;
+  // let punch_start = 0;
+  // let punch_frame = 0;
+  let attack_frame_duration = 50; // in milliseconds
 
   let facing;
 
 
-  let updateWalkAnimation = function(now, now_walking) {
+  let updateWalkAnimation = function(character, now, now_walking) {
+    let anim = character.animation;
     if (now_walking) {
-      if (!walk) {
-        walk_start = now; // reset start of walking animation
-        walk = true;
+      if (!anim.walk) {
+        anim.walk_start = now; // reset start of walking animation
+        anim.walk = true;
       }
-      walk_frame = (Math.floor((now - walk_start) % (walk_frame_duration*8) / walk_frame_duration));
+      anim.walk_frame = (Math.floor((now - anim.walk_start) % (walk_frame_duration*8) / walk_frame_duration));
 
     } else { // no walking -> either do not update, or stop animation
-      if (walk) { // was walking but stopped
-        walk = false;
-        walk_frame = 0;
+      if (anim.walk) { // was walking but stopped
+        anim.walk = false;
+        anim.walk_frame = 0;
       }
     }
   }
 
-  let updatePunchAnimation = function(now, now_punching) {
-    if (now_punching) {
-      if (!punch) {
-        punch_start = now; // reset start of walking animation
-        punch = true;
+  let updateAttackAnimation = function(character, now, now_attacking) {
+    let anim = character.animation;
+    if (now_attacking) {
+      if (!anim.attack) {
+        anim.attack_start = now; // reset start of walking animation
+        anim.attack = true;
       }
-      punch_frame = (Math.floor((now - punch_start) % (punch_frame_duration*3) / punch_frame_duration));
+      anim.attack_frame = (Math.floor((now - anim.attack_start) % (attack_frame_duration*3) / attack_frame_duration));
 
     } else { // no walking -> either do not update, or stop animation
-      if (punch) { // was walking but stopped
-        punch = false;
-        punch_frame = 0;
+      if (anim.attack) { // was walking but stopped
+        anim.attack = false;
+        anim.attack_frame = 0;
       }
     }
   }
+
+  // let updateAttackAnimation = function(enemy, now, now_attacking) {
+  //   if (enemy.now_attacking) {
+  //     if (!enemy.attack_animation) {
+  //       enemy.attack_start = now; // reset start of walking animation
+  //       enemy.attack_animation = true;
+  //     }
+  //     attack_frame = (Math.floor((now - attack_start) % (attack_frame_duration*3) / attack_frame_duration));
+  //
+  //   } else { // no walking -> either do not update, or stop animation
+  //     if (enemy.attack_animation) { // was attacking but stopped
+  //       enemy.attack_animation = false;
+  //       enemy.attack_frame = 0;
+  //     }
+  //   }
+  // }
 
   return {
-    getPlayerFrame: () => {
-      if (punch) {
-        let ox = facing*0.375+punch_frame*0.125+0.250;
+    getCharacterFrame: (character) => {
+      if (character.animation.attack) {
+        let ox = character.getState()[0]*0.375+character.animation.attack_frame*0.125+0.250;
         return [
           ox, 0.0,  ox+0.125, 0.0,  ox+0.125, 0.125, ox, 0.125
         ];
-      } else if (walk) {
-        let ox = walk_frame*0.125;
-        let oy = facing*0.125+0.125;
+      } else if (character.animation.walk) {
+        let ox = character.animation.walk_frame*0.125;
+        let oy = character.getState()[0]*0.125+0.125;
         return [
           ox, oy,  ox+0.125, oy,  ox+0.125, oy+0.125, ox, oy+0.125
         ];
       } else {
-        let ox = facing*0.125;
+        let ox = character.getState()[0]*0.125;
         return [
           ox, 0.0,  ox+0.125, 0.0,  ox+0.125, 0.125,  ox, 0.125
         ];
       }
     },
-    update: (now, state) => {
-      updateWalkAnimation(now, state[1] == 2);
-      updatePunchAnimation(now, state[1] == 3);
-      facing = state[0];
+    update: (game, now) => {
+      updateWalkAnimation(game.player, now, game.player.getState()[1] == 2);
+      updateAttackAnimation(game.player, now, game.player.getState()[1] == 3);
+      game.enemies.forEach(function(enemy){
+        updateWalkAnimation(enemy, now, enemy.getState()[1] == 2);
+        updateAttackAnimation(enemy, now, enemy.getState()[1] == 3);
+      });
+
+      // updateattackAnimation(now, state[1] == 3);
+      // facing = state[0];
     }
   }
 
