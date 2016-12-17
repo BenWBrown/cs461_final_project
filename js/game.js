@@ -1,6 +1,7 @@
 let EPS = 0.00001;
 let MIN_HEIGHT = -1.0;
-let PLAYER_SIZE = 0.5; //TODO: IS THERE A BETTER NUMBER?
+let CHARACTER_WIDTH = 0.35; //TODO: IS THERE A BETTER NUMBER?
+let PUNCH_DISTANCE = 0.1;
 
 // create Game object
 createGame = function() {
@@ -107,7 +108,7 @@ createGame = function() {
 
     let die = function() {
       if (lives <= 0) {
-        console.log("gameover");
+        //console.log("gameover");
       }
       vy = 0;
       jump_count++;
@@ -117,7 +118,11 @@ createGame = function() {
       z = 2.0;
       vy = 2.0;
       lives--;
-      console.log("dead");
+    //  console.log("dead");
+    }
+
+    let kill = function(enemy) {
+      enemy.dead = true;
     }
 
     let jump = function () {
@@ -226,15 +231,23 @@ createGame = function() {
     }
 
     let checkEnemies = function(enemies) {
-      let hit = false;
+      let hitEnemy = undefined;
+      let hitType = "nah";
       enemies.forEach(function(enemy) {
         if (over.has(enemy.platform) || onPlatform == enemy.platform) {
-          if (Math.abs(enemy.position()[0] - x) < 0.2) {
-            hit = true;
+          if (Math.abs(enemy.position()[0] - x) <  CHARACTER_WIDTH) {
+            hitEnemy = enemy;
+            hitType = "die"
+          }
+          if (Math.abs(enemy.position()[0] - x) <  CHARACTER_WIDTH + PUNCH_DISTANCE
+              && punch_countdown
+              && ((facing == 0 && enemy.position()[0] > x) || (facing == 1 && enemy.position()[0] < x)) ) {
+            hitEnemy = enemy;
+            hitType = "punch";
           }
         }
       });
-      return hit;
+      return {hitEnemy: hitEnemy, hitType: hitType};
     }
 
     return {
@@ -264,9 +277,19 @@ createGame = function() {
         if (y < MIN_HEIGHT) {
           die();
         }
-        if (!punch_countdown && checkEnemies(enemies)) {
-          //die();
-          console.log("hit enemy");
+        let collision = checkEnemies(enemies);
+        let hitEnemy = collision.hitEnemy
+        if (hitEnemy) {
+          if (collision.hitType == "die") {
+            //die();
+            console.log("die");
+          } else if (collision.hitType == "punch") { //TODO: PROPERLY KILL ENEMY
+            console.log("kill");
+            // console.log(enemies);
+            // let index = enemies.findIndex(function(e){return e==hitEnemy});
+            // enemies = enemies.slice(0, index).concat(enemies.slice(index+1));
+            // console.log(enemies);
+          }
         }
         updateInput();
         if (jump_count) {
@@ -400,6 +423,7 @@ createGame = function() {
     update: () => {
       lighting.update();
       player.update(enemies);
+      enemies.filter(function(enemy){return !enemy.dead});
       enemies.forEach(function(enemy){
         enemy.update();
       });
