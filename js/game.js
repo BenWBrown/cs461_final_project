@@ -220,15 +220,15 @@ createGame = function() {
         keyMap[' '.charCodeAt(0)] = false; // only jump once per press
       }
 
-      if (punch_countdown) {
-
-      } else {
+      // if (punch_countdown) {
+      //
+      // } else {
         if (keyMap[37] || keyMap['A'.charCodeAt(0)]){ // char code 37: left arrow
           left();
         }else if (keyMap[39] || keyMap['D'.charCodeAt(0)]){ // char code 39: right arrow
           right();
         }
-      }
+      //}
     }
 
     let checkEnemies = function(enemies) {
