@@ -108,7 +108,8 @@ createGame = function() {
 
     let die = function() {
       if (lives <= 0) {
-        //console.log("gameover");
+        console.log("gameover");
+        //alert("game over");
       }
       vy = 0;
       jump_count++;
@@ -274,6 +275,7 @@ createGame = function() {
         return result;
       },
       update: (enemies) => {
+        var newEnemies = enemies;
         if (y < MIN_HEIGHT) {
           die();
         }
@@ -281,14 +283,12 @@ createGame = function() {
         let hitEnemy = collision.hitEnemy
         if (hitEnemy) {
           if (collision.hitType == "die") {
-            //die();
-            console.log("die");
+            die();
+            //console.log("die");
           } else if (collision.hitType == "punch") { //TODO: PROPERLY KILL ENEMY
             console.log("kill");
-            // console.log(enemies);
-            // let index = enemies.findIndex(function(e){return e==hitEnemy});
-            // enemies = enemies.slice(0, index).concat(enemies.slice(index+1));
-            // console.log(enemies);
+            let index = enemies.findIndex(function(e){return e==hitEnemy});
+            newEnemies = enemies.slice(0, index).concat(enemies.slice(index+1));
           }
         }
         updateInput();
@@ -299,6 +299,7 @@ createGame = function() {
         if (punch_countdown) {
           punch_countdown = Math.max(punch_countdown - elapsed, 0);
         }
+        return newEnemies
       }
     }
   }
@@ -422,8 +423,8 @@ createGame = function() {
     player: player,
     update: () => {
       lighting.update();
-      player.update(enemies);
-      enemies.filter(function(enemy){return !enemy.dead});
+      let newEnemies = player.update(enemies);
+      enemies = newEnemies;
       enemies.forEach(function(enemy){
         enemy.update();
       });
@@ -431,11 +432,11 @@ createGame = function() {
         player.back();
       }
     },
-    enemies: enemies,
+    enemies: () => {return enemies},
     platforms: platforms,
-    addPlatform: (platform) => {
+    addPlatform: (platform, shouldHaveEnemy) => {
       platforms.push(platform);
-      enemies.push(createEnemy(platform));
+      if (shouldHaveEnemy) enemies.push(createEnemy(platform));
     },
     lighting: lighting
   }

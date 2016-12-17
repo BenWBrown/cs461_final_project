@@ -88,7 +88,7 @@ createAnimation = function() {
     update: (game, now) => {
       updateWalkAnimation(game.player, now, game.player.getState()[1] == 2);
       updateAttackAnimation(game.player, now, game.player.getState()[1] == 3);
-      game.enemies.forEach(function(enemy){
+      game.enemies().forEach(function(enemy){
         updateWalkAnimation(enemy, now, enemy.getState()[1] == 2);
         updateAttackAnimation(enemy, now, enemy.getState()[1] == 3);
       });

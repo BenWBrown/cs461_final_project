@@ -190,7 +190,7 @@ var getAverageNormals = function(triangleNormals) {
 
 
 
-var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, scale, roughness) {
+var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, scale, shouldHaveEnemy, roughness) {
   let map = buildHeightfield(size, (roughness ? roughness : -0.1));
   cliffEdges(map);
   let triangleNormals = getTriangleNormals(map);
@@ -220,7 +220,7 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, 
       return map[left][y] * weight + map[right][y] * (1 - weight) + yOffset;
     }
   }
-  game.addPlatform(platform);
+  game.addPlatform(platform, shouldHaveEnemy);
   return platform;
 }
 

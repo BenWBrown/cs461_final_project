@@ -401,8 +401,10 @@ window.onload = function(){
 
   gl.uniform4fv(program.u_LightPosition, new Float32Array(game.lighting.position()));
 
-  for (var i = 0; i < 3; i++) {
-    createPlatform(game, 1, 4, 0, i * 4, 0, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
+  let startingPlatform = createPlatform(game, 1, 4, 0, 0, 0, 0.25, false);
+
+  for (var i = 0; i < 2; i++) {
+    createPlatform(game, 1, 4, 0, (i+1) * 4, 0, 0.25, true); //game, textureID, size, y-offset, x-offset, z-offset, scale, shouldHaveEnemy
   }
 
   // platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, z-offset, scale
@@ -464,10 +466,11 @@ window.onload = function(){
     drawPlayer(game.player.position(),
       animation.getCharacterFrame(game.player));
 
-    game.enemies.forEach(function(enemy){
+    game.enemies().forEach(function(enemy){
       drawEnemy(enemy.position(),
         animation.getCharacterFrame(enemy));
     });
+    //console.log(game.enemies.length);
 
     requestAnimationFrame(render);
   };
@@ -483,5 +486,5 @@ window.onload = function(){
 
     ])
     .then(function () {render();})
-    .catch(function (error) {alert('Failed to load texture '+  error.message);});
+    //.catch(function (error) {alert('Failed to load texture '+  error.message);});
 }
