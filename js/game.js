@@ -164,9 +164,9 @@ createGame = function(numPlatforms, platformOffset) {
         jump_count++;
         onPlatform = undefined;
         x = newX + 1;
-        y = 0.0;
+        y = 1.5;
         z = 2.0;
-        vy = 2.0;
+        vy = 0.0;
         lives--;
 
         document.getElementById("lives").innerHTML = "Lives: " + lives;
