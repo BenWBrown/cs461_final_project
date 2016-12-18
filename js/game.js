@@ -2,9 +2,11 @@ let EPS = 0.00001;
 let MIN_HEIGHT = -1.0;
 let CHARACTER_WIDTH = 0.35; //TODO: IS THERE A BETTER NUMBER?
 let PUNCH_DISTANCE = 0.1;
+let PLATFORM_DISAPPEAR = 10;
+let DEBUG = true;
 
 // create Game object
-createGame = function() {
+createGame = function(numPlatforms, platformOffset) {
   let ay = -9.81; // gravity acceleration (unit/s^2)
   // create Player object
 
@@ -16,11 +18,11 @@ createGame = function() {
     let zOffset = 3.0;
     let getX = function() {
       if (move_countdown > 0) {
-        let dx = atPlatform.xOffset + (atPlatform.heights.length -2) * atPlatform.scale/2 - prevX;
+        let dx = atPlatform.xOffset() + (atPlatform.heights.length -2) * atPlatform.scale/2 - prevX;
 
         return (prevX + dx*(400-move_countdown)/400);
       } else {
-        return atPlatform.xOffset + (atPlatform.heights.length -2) * atPlatform.scale/2;
+        return atPlatform.xOffset() + (atPlatform.heights.length -2) * atPlatform.scale/2;
       }
     }
     return {
@@ -33,7 +35,7 @@ createGame = function() {
       },
       moveto: (platform) => {
         if (atPlatform)
-          prevX = atPlatform.xOffset + (atPlatform.heights.length -2) * atPlatform.scale/2;
+          prevX = atPlatform.xOffset() + (atPlatform.heights.length -2) * atPlatform.scale/2;
         move_countdown = 400;
         atPlatform = platform;
       },
@@ -107,19 +109,21 @@ createGame = function() {
     }
 
     let die = function() {
-      if (lives <= 0) {
-        console.log("gameover");
-        //alert("game over");
+      if (!DEBUG) {
+        if (lives <= 0) {
+          console.log("gameover");
+          //alert("game over");
+        }
+        vy = 0;
+        jump_count++;
+        onPlatform = undefined;
+        x = 1.0;
+        y = 0.0;
+        z = 2.0;
+        vy = 2.0;
+        lives--;
+      //  console.log("dead");
       }
-      vy = 0;
-      jump_count++;
-      onPlatform = undefined;
-      x = 1.0;
-      y = 0.0;
-      z = 2.0;
-      vy = 2.0;
-      lives--;
-    //  console.log("dead");
     }
 
     let kill = function(enemy) {
@@ -143,8 +147,8 @@ createGame = function() {
 
 
     let checkCollision = function(x, dx) {
-      if (onPlatform && safety && ((x+20*dx) < onPlatform.xOffset ||
-          (x+20*dx) > onPlatform.xOffset + (onPlatform.heights.length -2) * onPlatform.scale)) {
+      if (onPlatform && safety && ((x+20*dx) < onPlatform.xOffset() ||
+          (x+20*dx) > onPlatform.xOffset() + (onPlatform.heights.length -2) * onPlatform.scale)) {
         console.log("collide");
         return true;
       } else {
@@ -153,13 +157,13 @@ createGame = function() {
     };
 
     let heightAt = function(platform, x, z) {
-      var xIndex = (x - platform.xOffset) / platform.scale;
+      var xIndex = (x - platform.xOffset()) / platform.scale;
       var zIndex = (z / platform.scale);
       return platform.heightAtIndices(xIndex, zIndex);
     }
 
     let overPlatform = function(platform) {
-      var newX = x - platform.xOffset;
+      var newX = x - platform.xOffset();
       var xMax = (platform.heights.length -2) * platform.scale;
       var height = heightAt(platform, x, z);
       //console.log(zIndex, platform.heightAt(xIndex, zIndex));
@@ -176,7 +180,7 @@ createGame = function() {
     let checkLanding = function() {
       platforms.forEach(function(platform){
         if (over.has(platform) && overPlatform(platform) == "under") {
-          var xIndex = (x - platform.xOffset) / platform.scale;
+          var xIndex = (x - platform.xOffset()) / platform.scale;
           var zIndex = (z / platform.scale);
 
           jump_count = 0;
@@ -307,7 +311,7 @@ createGame = function() {
   let createEnemy = function(platform) {
 
     let hp = 100,
-      x = platform.xOffset + (platform.heights.length -2) * platform.scale/2,
+      x = platform.xOffset() + (platform.heights.length -2) * platform.scale/2,
       y = 2.0,
       z = 1.95,
       vx = 1.0, // unit/s
@@ -352,8 +356,8 @@ createGame = function() {
     };
 
     let checkCollision = function(x, dx) {
-      if (onPlatform && ((x+30*dx) < onPlatform.xOffset ||
-          (x+30*dx) > onPlatform.xOffset + (onPlatform.heights.length -2) * onPlatform.scale)) {
+      if (onPlatform && ((x+30*dx) < onPlatform.xOffset() ||
+          (x+30*dx) > onPlatform.xOffset() + (onPlatform.heights.length -2) * onPlatform.scale)) {
         facing = 1 - facing;
         move_count = 0;
         return true;
@@ -363,7 +367,7 @@ createGame = function() {
     };
 
     let heightAt = function(platform, x, z) {
-      var xIndex = (x - platform.xOffset) / platform.scale;
+      var xIndex = (x - platform.xOffset()) / platform.scale;
       var zIndex = (z / platform.scale);
       return platform.heightAtIndices(xIndex, zIndex);
     }
@@ -428,8 +432,15 @@ createGame = function() {
       enemies.forEach(function(enemy){
         enemy.update();
       });
-      if (keyMap['F'.charCodeAt(0)]){
-        player.back();
+      // if (keyMap['F'.charCodeAt(0)]){
+      //   player.back();
+      // }
+      if (player.position()[0] - platforms[0].xOffset() > PLATFORM_DISAPPEAR) {
+        console.log("platform moved");
+        let platform = platforms.shift();
+        platform.shiftPlatform(numPlatforms, platformOffset);
+        enemies.push(createEnemy(platform));
+        platforms.push(platform);
       }
     },
     enemies: () => {return enemies},

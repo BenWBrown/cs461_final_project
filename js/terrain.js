@@ -189,13 +189,14 @@ var getAverageNormals = function(triangleNormals) {
 }
 
 var createSky = function(game, textureID, yOffset, xOffset, zOffset) {
+  let position = [xOffset, yOffset, zOffset];
   let map = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
   let triangleNormals = getTriangleNormals(map);
   return {
     textureID: textureID,
-    yOffset: yOffset,
-    xOffset: xOffset,
-    zOffset: zOffset,
+    xOffset: () => {return position[0]},
+    yOffset: () => {return position[1]},
+    zOffset: () => {return position[2]},
     heights: map,
     normals: getAverageNormals(triangleNormals),
     diffuse: [1, 1, 1],
@@ -206,6 +207,7 @@ var createSky = function(game, textureID, yOffset, xOffset, zOffset) {
 }
 
 var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, scale, shouldHaveEnemy, roughness) {
+  let position = [xOffset, yOffset, zOffset];
   let map = buildHeightfield(size, (roughness ? roughness : -0.1));
   cliffEdges(map);
   let triangleNormals = getTriangleNormals(map);
@@ -213,15 +215,18 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, 
   let platform = {
     textureID: textureID,
     size: size,
-    yOffset: yOffset,
-    xOffset: xOffset,
-    zOffset: zOffset,
+    xOffset: () => {return position[0]},
+    yOffset: () => {return position[1]},
+    zOffset: () => {return position[2]},
     scale: scale,
     heights: map,
     normals: getAverageNormals(triangleNormals),
     diffuse: [0.9, 0.9, 0.9],
     specular: [0.8, 0.8, 0.8],
     shininess: 100.0,
+    shiftPlatform: (numPlatforms, platformOffset) => {
+      position[0] += numPlatforms * platformOffset;
+    },
     heightAtIndices: (xCoord, yCoord) => { //TODO: MAKE SURE THIS ACTUALLY WORKS. also, maybe interpolate in Y
       let y = Math.floor(yCoord);
       let x = xCoord;
@@ -240,14 +245,15 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, 
 }
 
 var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, scale, roughness) {
+  let position = [xOffset, yOffset, zOffset];
   let map = buildHeightfield(size, (roughness ? roughness : -0.05));
   let triangleNormals = getTriangleNormals(map);
   var normals = getAverageNormals(triangleNormals);
   return {
     textureID: textureID,
-    yOffset: yOffset,
-    xOffset: xOffset,
-    zOffset: zOffset,
+    xOffset: () => {return position[0]},
+    yOffset: () => {return position[1]},
+    zOffset: () => {return position[2]},
     scale: scale,
     heights: map,
     normals: getAverageNormals(triangleNormals),

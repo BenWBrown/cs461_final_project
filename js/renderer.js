@@ -168,9 +168,9 @@ var createCharacterSprite = function(gl, program, w, h, texID) {
 // create mesh draw
 var createMesh = function(gl, program, field, texStretch = 2.0, swapYZ = false){
   let textureID = field.textureID;
-  let oy = field.yOffset;
-  let ox = field.xOffset;
-  let oz = field.zOffset;
+  let oy = field.yOffset();
+  let ox = field.xOffset();
+  let oz = field.zOffset();
   let heights = field.heights;
   let normals = field.normals;
   let diffuse = field.diffuse;
@@ -391,7 +391,9 @@ window.onload = function(){
 
 
   // create game object (stores layout, player, NPCs)
-  game = createGame();
+  let numPlatforms = 4;
+  let platformOffset = 4;
+  game = createGame(numPlatforms, platformOffset);
 
   // create animation handler
   animation = createAnimation();
@@ -404,13 +406,13 @@ window.onload = function(){
 
   let startingPlatform = createPlatform(game, 1, 4, 0, 0, 0, 0.25, false);
 
-  for (var i = 0; i < 2; i++) {
-    createPlatform(game, 1, 4, 0, (i+1) * 4, 0, 0.25, true); //game, textureID, size, y-offset, x-offset, z-offset, scale, shouldHaveEnemy
+  for (var i = 0; i < numPlatforms; i++) {
+    createPlatform(game, 1, 4, 0, (i+1) * platformOffset, 0, 0.25, true); //game, textureID, size, y-offset, x-offset, z-offset, scale, shouldHaveEnemy
   }
 
   // platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, z-offset, scale
   // platform2 = createPlatform(game, 1, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
-  water = createWater(game, 2, 8, -1.0, -10, -20, 0.25);
+  water = createWater(game, 2, 6, -1.0, -10, -20, 1);
 
   var now = 0;
   var then = 0;
