@@ -110,7 +110,7 @@ createGame = function(numPlatforms, platformOffset) {
       onPlatform = undefined;
     }
 
-    let die = function() {
+    let die = function(newX) {
       if (!DEBUG) {
         if (lives <= 0) {
           console.log("gameover");
@@ -119,7 +119,7 @@ createGame = function(numPlatforms, platformOffset) {
         vy = 0;
         jump_count++;
         onPlatform = undefined;
-        x = 1.0;
+        x = newX + 1;
         y = 0.0;
         z = 2.0;
         vy = 2.0;
@@ -280,16 +280,16 @@ createGame = function(numPlatforms, platformOffset) {
         }
         return result;
       },
-      update: (enemies) => {
+      update: (enemies, platforms) => {
         var newEnemies = enemies;
         if (y < MIN_HEIGHT) {
-          die();
+          die(platforms[0].xOffset());
         }
         let collision = checkEnemies(enemies);
         let hitEnemy = collision.hitEnemy
         if (hitEnemy) {
           if (collision.hitType == "die") {
-            die();
+            die(platforms[0].xOffset());
             //console.log("die");
           } else if (collision.hitType == "punch") { //TODO: PROPERLY KILL ENEMY
             console.log("kill");
@@ -430,7 +430,7 @@ createGame = function(numPlatforms, platformOffset) {
     player: player,
     update: () => {
       lighting.update();
-      let newEnemies = player.update(enemies);
+      let newEnemies = player.update(enemies, platforms);
       enemies = newEnemies;
       enemies.forEach(function(enemy){
         enemy.update();
@@ -446,6 +446,11 @@ createGame = function(numPlatforms, platformOffset) {
           enemies.push(createEnemy(platform));
           platforms.push(platform);
         }
+      }
+      if (player.position()[0] - waterTiles[0].xOffset() > waterTiles[0].width + PLATFORM_DISAPPEAR * 2) {
+        let water = waterTiles.shift();
+        water.shiftTile(water.width);
+        waterTiles.push(water);
       }
     },
     enemies: () => {return enemies},

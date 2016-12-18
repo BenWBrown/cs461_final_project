@@ -413,8 +413,9 @@ window.onload = function(){
   // platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, z-offset, scale
   // platform2 = createPlatform(game, 1, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
   let waterScale = 1;
-  water1 = createWater(game, 2, 6, -1.0, -10, -20, waterScale);
-  water2 = createWater(game, 2, 6, -1.0, -10 + (Math.pow(2, 6) - 2) * waterScale, -20, waterScale, water1.heights );
+  water1 = createWater(game, 2, 6, -1.0, -15, -20, waterScale);
+  water2 = createWater(game, 2, 6, -1.0, -15 + (Math.pow(2, 6) - 2) * waterScale, -20, waterScale, water1.heights );
+  water2 = createWater(game, 2, 6, -1.0, -15 + (Math.pow(2, 6) - 2) * waterScale * 2, -20, waterScale, water1.heights );
 
   var now = 0;
   var then = 0;

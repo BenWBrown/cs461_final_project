@@ -257,11 +257,13 @@ var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, sca
     zOffset: () => {return position[2]},
     scale: scale,
     heights: map,
+    width: scale * (Math.pow(2, size) - 1),
     normals: getAverageNormals(triangleNormals),
     color: [0.0, 0.2, 0.5],
     diffuse: [0.9, 0.9, 0.9],
     specular: [0.8, 0.8, 0.8],
-    shininess: 100.0
+    shininess: 100.0,
+    shiftTile: (distance) => {position[0] += distance;}
   }
   game.waterTiles.push(water);
   return water;
