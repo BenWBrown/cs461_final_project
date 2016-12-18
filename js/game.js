@@ -1,7 +1,7 @@
 let EPS = 0.00001;
-let MIN_HEIGHT = -1.0;
+let MIN_HEIGHT = -0.75;
 let CHARACTER_WIDTH = 0.35; //TODO: IS THERE A BETTER NUMBER?
-let PUNCH_DISTANCE = 0.1;
+let PUNCH_DISTANCE = 0.4;
 
 // create Game object
 createGame = function() {
@@ -54,15 +54,27 @@ createGame = function() {
     let attack = false;
     let attack_start = 0;
     let attack_frame = 0;
+
+    let death = false;
+    let death_start = 0;
+    let death_over = false;
+
+    let visible = true;
+    let h = 1.0;
+
     return {
       walk: walk, walk_start: walk_start, walk_frame: walk_frame,
-      attack: attack, attack_start: attack_start, attack_frame: attack_frame
+      attack: attack, attack_start: attack_start, attack_frame: attack_frame,
+      death: death, death_start: death_start, death_over: death_over,
+      hide: () => {console.log("hide"); visible = false;},
+      visible: visible, h: h
     }
   }
 
   let createPlayer = function() {
     let hp = 100,
       lives = 3,
+      dying = false,
       points = 0,
       x = 1.0,
       y = 2.0,
@@ -92,9 +104,11 @@ createGame = function() {
       if (!checkCollision(x, dx)) {
         x += dx;
         if (onPlatform) {
-          if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
+          // if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
             y = heightAt(onPlatform, x, z);
-          }
+          // } else {
+          //   die();
+          // }
         }
       }
       facing = dx > 0 ? 0 : 1;
@@ -107,6 +121,11 @@ createGame = function() {
     }
 
     let die = function() {
+      console.log("death begins");
+      dying = true;
+    }
+    let finishDeath = function() {
+      console.log("donezo");
       if (lives <= 0) {
         console.log("gameover");
         //alert("game over");
@@ -119,7 +138,8 @@ createGame = function() {
       z = 2.0;
       vy = 2.0;
       lives--;
-    //  console.log("dead");
+      dying = false;
+      animation.h = 1.0;
     }
 
     let kill = function(enemy) {
@@ -143,7 +163,7 @@ createGame = function() {
 
 
     let checkCollision = function(x, dx) {
-      if (onPlatform && safety && ((x+20*dx) < onPlatform.xOffset ||
+      if (safety && onPlatform && ((x+20*dx) < onPlatform.xOffset ||
           (x+20*dx) > onPlatform.xOffset + (onPlatform.heights.length -2) * onPlatform.scale)) {
         console.log("collide");
         return true;
@@ -220,29 +240,30 @@ createGame = function() {
         keyMap[' '.charCodeAt(0)] = false; // only jump once per press
       }
 
-      // if (punch_countdown) {
-      //
-      // } else {
-        if (keyMap[37] || keyMap['A'.charCodeAt(0)]){ // char code 37: left arrow
-          left();
-        }else if (keyMap[39] || keyMap['D'.charCodeAt(0)]){ // char code 39: right arrow
-          right();
-        }
-      //}
+      if (keyMap[37] || keyMap['A'.charCodeAt(0)]){ // char code 37: left arrow
+        left();
+      }else if (keyMap[39] || keyMap['D'.charCodeAt(0)]){ // char code 39: right arrow
+        right();
+      }
     }
 
     let checkEnemies = function(enemies) {
       let hitEnemy = undefined;
       let hitType = "nah";
       enemies.forEach(function(enemy) {
-        if (over.has(enemy.platform) || onPlatform == enemy.platform) {
+        if (enemy.dead() || enemy.dying()) {
+          return;
+        }
+        if ((over.has(enemy.platform) || onPlatform == enemy.platform)) {
           if (Math.abs(enemy.position()[0] - x) <  CHARACTER_WIDTH) {
             hitEnemy = enemy;
             hitType = "die"
           }
+          // console.log(enemy.position()[0], x, PUNCH_DISTANCE);
           if (Math.abs(enemy.position()[0] - x) <  CHARACTER_WIDTH + PUNCH_DISTANCE
               && punch_countdown
               && ((facing == 0 && enemy.position()[0] > x) || (facing == 1 && enemy.position()[0] < x)) ) {
+
             hitEnemy = enemy;
             hitType = "punch";
           }
@@ -261,10 +282,16 @@ createGame = function() {
         dz = 3*elapsed/1000;
         z -= dz;
       },
+      dying: () => {return dying},
+      finishDeath: () => {
+        finishDeath();
+      },
       getState: () => { // used for animating sprite
         result = [0, 0];
         result[0] = facing;
-        if (punch_countdown) {
+        if (dying) {
+          result[1] = 4;
+        } else if (punch_countdown) {
           result[1] = 3;
         } else if (jump_count) {
           result[1] = 1; // falling
@@ -276,22 +303,25 @@ createGame = function() {
       },
       update: (enemies) => {
         var newEnemies = enemies;
-        if (y < MIN_HEIGHT) {
+        if (y <= MIN_HEIGHT) {
           die();
         }
         let collision = checkEnemies(enemies);
-        let hitEnemy = collision.hitEnemy
+        let hitEnemy = collision.hitEnemy;
         if (hitEnemy) {
           if (collision.hitType == "die") {
             die();
             //console.log("die");
           } else if (collision.hitType == "punch") { //TODO: PROPERLY KILL ENEMY
             console.log("kill");
-            let index = enemies.findIndex(function(e){return e==hitEnemy});
-            newEnemies = enemies.slice(0, index).concat(enemies.slice(index+1));
+            hitEnemy.die();
+            // let index = enemies.findIndex(function(e){return e==hitEnemy});
+            // newEnemies = enemies.slice(0, index).concat(enemies.slice(index+1));
           }
         }
-        updateInput();
+        if (!dying) {
+          updateInput();
+        }
         if (jump_count) {
           updateFall();
           checkLanding();
@@ -307,6 +337,8 @@ createGame = function() {
   let createEnemy = function(platform) {
 
     let hp = 100,
+      dying = false,
+      dead = false,
       x = platform.xOffset + (platform.heights.length -2) * platform.scale/2,
       y = 2.0,
       z = 1.95,
@@ -337,9 +369,7 @@ createGame = function() {
       if (!checkCollision(x, dx)) {
         x += dx;
         if (onPlatform) {
-          if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
-            y = heightAt(onPlatform, x, z);
-          }
+          y = heightAt(onPlatform, x, z);
         }
       }
       facing = dx > 0 ? 0 : 1;
@@ -376,10 +406,19 @@ createGame = function() {
       position: () => {
         return [x, y, z];
       },
+      die: () => {
+        console.log("enemy died");
+        dying = true;
+      },
+      dying: () => {return dying},
+      dead: () => {return dead},
+      finishDeath: () => {console.log("finsihed death"); dead = true; dying = false},
       getState: () => { // used for animating sprite
         result = [0, 0];
         result[0] = facing;
-        if (attack_countdown) {
+        if (dying) {
+          result[1] = 4; // dying
+        } else if (attack_countdown) {
           result[1] = 3;
         } else if (move_count > 0 && direction <= 1) {
           result[1] = 2; // walking
@@ -387,6 +426,9 @@ createGame = function() {
         return result;
       },
       update: () => {
+        if (dead) {
+          return;
+        }
         if (onPlatform && move_count > 0) {
           move_count -= elapsed;
           if (direction == 1) {
@@ -399,16 +441,6 @@ createGame = function() {
           move_count = (Math.random()+0.5) * 2000;
           direction = (Math.random() > 0.8 ? 5 : (Math.random() > 0.4 ? 1 : 0));
         }
-        // if (!onPlatform) {
-        //   jump();
-        // }
-        // if (jump_count) {
-        //   updateFall();
-        //   checkLanding();
-        // }
-        // if (attack_countdown) {
-        //   attack_countdown = Math.max(attack_countdown - elapsed, 0);
-        // }
       }
     }
   }
@@ -428,9 +460,6 @@ createGame = function() {
       enemies.forEach(function(enemy){
         enemy.update();
       });
-      if (keyMap['F'.charCodeAt(0)]){
-        player.back();
-      }
     },
     enemies: () => {return enemies},
     platforms: platforms,

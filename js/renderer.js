@@ -119,7 +119,7 @@ var createCharacterSprite = function(gl, program, w, h, texID) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, player.indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, player.indices, gl.STATIC_DRAW);
 
-  return function(pos, frame){
+  return function(pos, frame, h_scale = 1.0){
     gl.uniform1i(program.u_Sampler, texID); // sprite texture
     gl.uniform1i(program.u_NormalMap, 4); // texture 4: character normal map
 
@@ -127,7 +127,7 @@ var createCharacterSprite = function(gl, program, w, h, texID) {
     // finish filling buffers
 
     player.vertices = new Float32Array([
-      pos[0]-w/2, h+pos[1], pos[2],  pos[0]+w/2, h+pos[1], pos[2],  pos[0]+w/2, pos[1], pos[2],  pos[0]-w/2, pos[1], pos[2]
+      pos[0]-w/2, (h_scale*h)+pos[1], pos[2],  pos[0]+w/2, (h_scale*h)+pos[1], pos[2],  pos[0]+w/2, pos[1], pos[2],  pos[0]-w/2, pos[1], pos[2]
     ])
     player.vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, player.vertexBuffer);
@@ -378,8 +378,17 @@ window.onload = function(){
 
   window.onkeydown = function(e){
       keyMap[e.which] = true;
-      if (keyMap['Y'.charCodeAt(0)]) {
-        initializeTexture(gl, gl.TEXTURE3,'../images/player-white.png')
+      if (keyMap['B'.charCodeAt(0)]) {
+        initializeTexture(gl, gl.TEXTURE3,'../images/player-white.png');
+        // keyMap['Y'.charCodeAt(0)] = false;
+      }
+      if (keyMap['N'.charCodeAt(0)]) {
+        initializeTexture(gl, gl.TEXTURE3,'../images/player-normals.png');
+        // keyMap['Y'.charCodeAt(0)] = false;
+      }
+      if (keyMap['R'.charCodeAt(0)]) {
+        initializeTexture(gl, gl.TEXTURE3,'../images/player.png');
+        // keyMap['Y'.charCodeAt(0)] = false;
       }
   }
 
@@ -478,11 +487,14 @@ window.onload = function(){
     gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
 
     drawPlayer(game.player.position(),
-      animation.getCharacterFrame(game.player));
+      animation.getCharacterFrame(game.player),
+      game.player.animation.h);
 
     game.enemies().forEach(function(enemy){
-      drawEnemy(enemy.position(),
-        animation.getCharacterFrame(enemy));
+      if (!enemy.dead()) {
+        drawEnemy(enemy.position(),
+          animation.getCharacterFrame(enemy), enemy.animation.h);
+      }
     });
     //console.log(game.enemies.length);
 

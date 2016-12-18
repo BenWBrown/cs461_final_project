@@ -12,12 +12,15 @@ createAnimation = function() {
   // let punch_frame = 0;
   let attack_frame_duration = 50; // in milliseconds
 
+
+  let death_duration = 500; // in milliseconds
+
   let facing;
 
 
-  let updateWalkAnimation = function(character, now, now_walking) {
+  let updateWalkAnimation = function(character, now) {
     let anim = character.animation;
-    if (now_walking) {
+    if (character.getState()[1] == 2) {
       if (!anim.walk) {
         anim.walk_start = now; // reset start of walking animation
         anim.walk = true;
@@ -32,9 +35,9 @@ createAnimation = function() {
     }
   }
 
-  let updateAttackAnimation = function(character, now, now_attacking) {
+  let updateAttackAnimation = function(character, now) {
     let anim = character.animation;
-    if (now_attacking) {
+    if (character.getState()[1] == 3) {
       if (!anim.attack) {
         anim.attack_start = now; // reset start of walking animation
         anim.attack = true;
@@ -49,21 +52,24 @@ createAnimation = function() {
     }
   }
 
-  // let updateAttackAnimation = function(enemy, now, now_attacking) {
-  //   if (enemy.now_attacking) {
-  //     if (!enemy.attack_animation) {
-  //       enemy.attack_start = now; // reset start of walking animation
-  //       enemy.attack_animation = true;
-  //     }
-  //     attack_frame = (Math.floor((now - attack_start) % (attack_frame_duration*3) / attack_frame_duration));
-  //
-  //   } else { // no walking -> either do not update, or stop animation
-  //     if (enemy.attack_animation) { // was attacking but stopped
-  //       enemy.attack_animation = false;
-  //       enemy.attack_frame = 0;
-  //     }
-  //   }
-  // }
+  let updateDeathAnimation = function(character, now) {
+
+    if (character.getState()[1] == 4) {
+      console.log("dying");
+      let anim = character.animation;
+      if (!anim.death) {
+        anim.death_start = now; // reset start of walking animation
+        anim.death = true;
+      }
+      anim.h = 1.0 - (now - anim.death_start)/death_duration;
+      if ((now - anim.death_start) >= death_duration) {
+        anim.h = 1.0;
+        anim.death = false;
+        character.finishDeath();
+        // anim.hide();
+      }
+    }
+  }
 
   return {
     getCharacterFrame: (character) => {
@@ -86,11 +92,13 @@ createAnimation = function() {
       }
     },
     update: (game, now) => {
-      updateWalkAnimation(game.player, now, game.player.getState()[1] == 2);
-      updateAttackAnimation(game.player, now, game.player.getState()[1] == 3);
+      updateWalkAnimation(game.player, now);
+      updateAttackAnimation(game.player, now);
+      updateDeathAnimation(game.player, now);
       game.enemies().forEach(function(enemy){
-        updateWalkAnimation(enemy, now, enemy.getState()[1] == 2);
-        updateAttackAnimation(enemy, now, enemy.getState()[1] == 3);
+        updateWalkAnimation(enemy, now);
+        updateAttackAnimation(enemy, now);
+        updateDeathAnimation(enemy, now);
       });
 
       // updateattackAnimation(now, state[1] == 3);
