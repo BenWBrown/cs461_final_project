@@ -245,7 +245,7 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, 
   return platform;
 }
 
-var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, scale, heights, roughness) {
+var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, scale, tileSize, heights, roughness) {
   let position = [xOffset, yOffset, zOffset];
   let map = heights ? heights : buildHeightfield(size, (roughness ? roughness : -0.05));
   let triangleNormals = getTriangleNormals(map);
@@ -255,9 +255,9 @@ var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, sca
     xOffset: () => {return position[0]},
     yOffset: () => {return position[1]},
     zOffset: () => {return position[2]},
-    scale: scale,
+    scale: scale + 0.1,
     heights: map,
-    width: scale * (Math.pow(2, size) - 1),
+    width: tileSize,
     normals: getAverageNormals(triangleNormals),
     color: [0.0, 0.2, 0.5],
     diffuse: [0.9, 0.9, 0.9],

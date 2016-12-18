@@ -506,9 +506,9 @@ createGame = function(numPlatforms, platformOffset) {
       enemies.forEach(function(enemy){
         enemy.update();
       });
-      // if (keyMap['F'.charCodeAt(0)]){
-      //   player.back();
-      // }
+      if(keyMap['G'.charCodeAt(0)]) {
+        console.log(waterTiles);
+      }
       if (player.position()[0] - platforms[0].xOffset() > PLATFORM_DISAPPEAR) {
         console.log("platform moved");
         let platform = platforms.shift();
@@ -520,7 +520,7 @@ createGame = function(numPlatforms, platformOffset) {
       }
       if (player.position()[0] - waterTiles[0].xOffset() > waterTiles[0].width + PLATFORM_DISAPPEAR * 2) {
         let water = waterTiles.shift();
-        water.shiftTile(water.width);
+        water.shiftTile(water.width * (waterTiles.length + 1));
         waterTiles.push(water);
       }
     },
