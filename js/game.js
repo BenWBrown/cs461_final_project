@@ -128,28 +128,6 @@ createGame = function(numPlatforms, platformOffset) {
       onPlatform = undefined;
     }
 
-// <<<<<<< HEAD
-//     let die = function() {
-//       console.log("death begins");
-//       dying = true;
-//     }
-//     let finishDeath = function() {
-//       console.log("donezo");
-//       if (lives <= 0) {
-//         console.log("gameover");
-//         //alert("game over");
-//       }
-//       vy = 0;
-//       jump_count++;
-//       onPlatform = undefined;
-//       x = 1.0;
-//       y = 0.0;
-//       z = 2.0;
-//       vy = 2.0;
-//       lives--;
-//       dying = false;
-//       animation.h = 1.0;
-// =======
     let die = function(newX) {
       if (!DEBUG) {
         if (lives <= 1) {
@@ -172,7 +150,6 @@ createGame = function(numPlatforms, platformOffset) {
         document.getElementById("lives").innerHTML = "Lives: " + lives;
       //  console.log("dead");
       }
-// >>>>>>> origin/master
     }
 
     let kill = function(enemy) {
@@ -339,13 +316,8 @@ createGame = function(numPlatforms, platformOffset) {
       },
       update: (enemies, platforms) => {
         var newEnemies = enemies;
-// <<<<<<< HEAD
-//         if (y <= MIN_HEIGHT) {
-//           die();
-// =======
         if (y < MIN_HEIGHT) {
           die(platforms[0].xOffset());
-// >>>>>>> origin/master
         }
         let collision = checkEnemies(enemies);
         let hitEnemy = collision.hitEnemy;
