@@ -6,6 +6,8 @@ let PLATFORM_DISAPPEAR = 10;
 let DEBUG = false;
 let FAST = false;
 
+let score = 0;
+
 // create Game object
 createGame = function(numPlatforms, platformOffset) {
   let ay = -9.81; // gravity acceleration (unit/s^2)
@@ -112,9 +114,13 @@ createGame = function(numPlatforms, platformOffset) {
 
     let die = function(newX) {
       if (!DEBUG) {
-        if (lives <= 0) {
+        if (lives <= 1) {
           console.log("gameover");
-          //alert("game over");
+          alert("game over");
+          lives = 4;
+          score = 0;
+          document.getElementById("score").innerHTML = "Score: " + score;
+          keyMap = {};
         }
         vy = 0;
         jump_count++;
@@ -124,6 +130,8 @@ createGame = function(numPlatforms, platformOffset) {
         z = 2.0;
         vy = 2.0;
         lives--;
+
+        document.getElementById("lives").innerHTML = "Lives: " + lives;
       //  console.log("dead");
       }
     }
@@ -291,8 +299,9 @@ createGame = function(numPlatforms, platformOffset) {
           if (collision.hitType == "die") {
             die(platforms[0].xOffset());
             //console.log("die");
-          } else if (collision.hitType == "punch") { //TODO: PROPERLY KILL ENEMY
-            console.log("kill");
+          } else if (collision.hitType == "punch") {
+            score++;
+            document.getElementById("score").innerHTML = "Score: " + score;
             let index = enemies.findIndex(function(e){return e==hitEnemy});
             newEnemies = enemies.slice(0, index).concat(enemies.slice(index+1));
           }
