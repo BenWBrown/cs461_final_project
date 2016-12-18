@@ -80,6 +80,7 @@ createGame = function(numPlatforms, platformOffset) {
       over = new Set(),
       onPlatform = undefined,
       punch_countdown = 0,  // attack animation countdown timer
+      punch_cooldown = 0,
       animation = createAnimationData();
 
 
@@ -150,9 +151,12 @@ createGame = function(numPlatforms, platformOffset) {
     };
 
     let punch = function () {
-      console.log("punch");
-      sound.punch();
-      punch_countdown = 150;
+      if (!punch_cooldown) {
+        console.log("punch");
+        sound.punch();
+        punch_countdown = 150;
+        punch_cooldown = 500;
+      }
     };
 
 
@@ -313,6 +317,9 @@ createGame = function(numPlatforms, platformOffset) {
         }
         if (punch_countdown) {
           punch_countdown = Math.max(punch_countdown - elapsed, 0);
+        }
+        if (punch_cooldown) {
+          punch_cooldown = Math.max(punch_cooldown - elapsed, 0);
         }
         return newEnemies
       }
