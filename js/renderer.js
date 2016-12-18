@@ -166,7 +166,7 @@ var createCharacterSprite = function(gl, program, w, h, texID) {
 }
 
 // create mesh draw
-var createMesh = function(gl, program, field, texStretch = 2.0){
+var createMesh = function(gl, program, field, texStretch = 2.0, swapYZ = false){
   let textureID = field.textureID;
   let oy = field.yOffset;
   let ox = field.xOffset;
@@ -186,7 +186,8 @@ var createMesh = function(gl, program, field, texStretch = 2.0){
   for (let z = 0; z < size; z++) {
     for (let x = 0; x < size; x++) {
       y = heights[x][z];
-      tempVertices.push(x * scale + ox, y+oy, z * scale + oz);
+      if (!swapYZ) {tempVertices.push(x * scale + ox, y+oy, z * scale + oz);}
+      else {tempVertices.push(x * scale + ox, z * scale +oy, y + oz);}
       if (z<normals[x].length) {
         tempTexCoords.push(texStretch*x/size, texStretch*z/size);
         tempNormals.push(normals[x][z][0],
@@ -425,6 +426,9 @@ window.onload = function(){
   //drawPlatforms = createMesh(gl, program, platform1, platform1.textureID, platform1.yOffset, platform1.xOffset);
   drawWater = createMesh(gl, program, water, 10.0);
 
+  sky = createSky(game, 6, 0, 1, -7);
+  drawSky = createMesh(gl, program, sky, 5, true);
+
 
   elapsed = 0;
   let render = function(now){
@@ -463,6 +467,16 @@ window.onload = function(){
 
     drawPlatforms();
     drawWater();
+
+    let transform = mat4.create();
+    mat4.fromTranslation(transform, vec3.fromValues(camera.eye()[0] - 1 - sky.scale/2, 0, 0));
+    //console.log(transform);
+    gl.uniformMatrix4fv(u_Transform, false, transform);
+    gl.uniform3f(program.u_Ambient, 2, 2, 2);
+    drawSky();
+    gl.uniformMatrix4fv(u_Transform, false, mat4.create());
+    gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
+
     drawPlayer(game.player.position(),
       animation.getCharacterFrame(game.player));
 
@@ -482,7 +496,8 @@ window.onload = function(){
     initializeTexture(gl, gl.TEXTURE2,'../images/water.jpg', true),
     initializeTexture(gl, gl.TEXTURE3,'../images/player.png'),
     initializeTexture(gl, gl.TEXTURE4,'../images/player-normals.png'),
-    initializeTexture(gl, gl.TEXTURE5,'../images/skeleton.png')
+    initializeTexture(gl, gl.TEXTURE5,'../images/skeleton.png'),
+    initializeTexture(gl, gl.TEXTURE6,'../images/sky.png')
 
     ])
     .then(function () {render();})

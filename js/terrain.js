@@ -188,7 +188,22 @@ var getAverageNormals = function(triangleNormals) {
   return normals;
 }
 
-
+var createSky = function(game, textureID, yOffset, xOffset, zOffset) {
+  let map = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  let triangleNormals = getTriangleNormals(map);
+  return {
+    textureID: textureID,
+    yOffset: yOffset,
+    xOffset: xOffset,
+    zOffset: zOffset,
+    heights: map,
+    normals: getAverageNormals(triangleNormals),
+    diffuse: [1, 1, 1],
+    specular: [1, 1, 1],
+    shininess: 100,
+    scale: 20
+  }
+}
 
 var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, scale, shouldHaveEnemy, roughness) {
   let map = buildHeightfield(size, (roughness ? roughness : -0.1));
