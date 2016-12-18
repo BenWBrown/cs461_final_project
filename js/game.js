@@ -3,7 +3,8 @@ let MIN_HEIGHT = -1.0;
 let CHARACTER_WIDTH = 0.35; //TODO: IS THERE A BETTER NUMBER?
 let PUNCH_DISTANCE = 0.1;
 let PLATFORM_DISAPPEAR = 10;
-let DEBUG = true;
+let DEBUG = false;
+let FAST = false;
 
 // create Game object
 createGame = function(numPlatforms, platformOffset) {
@@ -92,6 +93,7 @@ createGame = function(numPlatforms, platformOffset) {
 
     let walk = function(dx) {
       if (!checkCollision(x, dx)) {
+        if(FAST) dx *= 5;
         x += dx;
         if (onPlatform) {
           if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
@@ -422,6 +424,7 @@ createGame = function(numPlatforms, platformOffset) {
   let platforms = [];
   let player = createPlayer();
   let enemies = [];
+  let waterTiles = [];
 
   return {
     player: player,
@@ -438,13 +441,16 @@ createGame = function(numPlatforms, platformOffset) {
       if (player.position()[0] - platforms[0].xOffset() > PLATFORM_DISAPPEAR) {
         console.log("platform moved");
         let platform = platforms.shift();
-        platform.shiftPlatform(numPlatforms, platformOffset);
-        enemies.push(createEnemy(platform));
-        platforms.push(platform);
+        if (platform.shouldHaveEnemy) {
+          platform.shiftPlatform(numPlatforms, platformOffset);
+          enemies.push(createEnemy(platform));
+          platforms.push(platform);
+        }
       }
     },
     enemies: () => {return enemies},
     platforms: platforms,
+    waterTiles: waterTiles,
     addPlatform: (platform, shouldHaveEnemy) => {
       platforms.push(platform);
       if (shouldHaveEnemy) enemies.push(createEnemy(platform));

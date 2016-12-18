@@ -412,7 +412,9 @@ window.onload = function(){
 
   // platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, z-offset, scale
   // platform2 = createPlatform(game, 1, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
-  water = createWater(game, 2, 6, -1.0, -10, -20, 1);
+  let waterScale = 1;
+  water1 = createWater(game, 2, 6, -1.0, -10, -20, waterScale);
+  water2 = createWater(game, 2, 6, -1.0, -10 + (Math.pow(2, 6) - 2) * waterScale, -20, waterScale, water1.heights );
 
   var now = 0;
   var then = 0;
@@ -421,12 +423,17 @@ window.onload = function(){
   drawEnemy = createCharacterSprite(gl, program, 1.0, 1.0, 5);
   drawPlatforms = function() {
     game.platforms.forEach(function(platform) {
-      var drawMesh = createMesh(gl, program, platform)
+      var drawMesh = createMesh(gl, program, platform);
       drawMesh();
     });
   };
   //drawPlatforms = createMesh(gl, program, platform1, platform1.textureID, platform1.yOffset, platform1.xOffset);
-  drawWater = createMesh(gl, program, water, 10.0);
+  drawWater = function() {
+    game.waterTiles.forEach(function(water) {
+      var drawMesh = createMesh(gl, program, water, 10.0);
+      drawMesh();
+    });
+  }
 
   sky = createSky(game, 6, 0, 1, -7);
   drawSky = createMesh(gl, program, sky, 5, true);

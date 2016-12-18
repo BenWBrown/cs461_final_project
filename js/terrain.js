@@ -224,6 +224,7 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, 
     diffuse: [0.9, 0.9, 0.9],
     specular: [0.8, 0.8, 0.8],
     shininess: 100.0,
+    shouldHaveEnemy: shouldHaveEnemy,
     shiftPlatform: (numPlatforms, platformOffset) => {
       position[0] += numPlatforms * platformOffset;
     },
@@ -244,12 +245,12 @@ var createPlatform = function(game, textureID, size, yOffset, xOffset, zOffset, 
   return platform;
 }
 
-var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, scale, roughness) {
+var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, scale, heights, roughness) {
   let position = [xOffset, yOffset, zOffset];
-  let map = buildHeightfield(size, (roughness ? roughness : -0.05));
+  let map = heights ? heights : buildHeightfield(size, (roughness ? roughness : -0.05));
   let triangleNormals = getTriangleNormals(map);
   var normals = getAverageNormals(triangleNormals);
-  return {
+  let water = {
     textureID: textureID,
     xOffset: () => {return position[0]},
     yOffset: () => {return position[1]},
@@ -262,4 +263,6 @@ var createWater = function(game, textureID, size, yOffset, xOffset, zOffset, sca
     specular: [0.8, 0.8, 0.8],
     shininess: 100.0
   }
+  game.waterTiles.push(water);
+  return water;
 }
