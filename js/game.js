@@ -1,10 +1,19 @@
 let EPS = 0.00001;
 let MIN_HEIGHT = -0.75;
 let CHARACTER_WIDTH = 0.35; //TODO: IS THERE A BETTER NUMBER?
+<<<<<<< HEAD
 let PUNCH_DISTANCE = 0.4;
+=======
+let PUNCH_DISTANCE = 0.1;
+let PLATFORM_DISAPPEAR = 10;
+let DEBUG = false;
+let FAST = false;
+
+let score = 0;
+>>>>>>> origin/master
 
 // create Game object
-createGame = function() {
+createGame = function(numPlatforms, platformOffset) {
   let ay = -9.81; // gravity acceleration (unit/s^2)
   // create Player object
 
@@ -16,11 +25,11 @@ createGame = function() {
     let zOffset = 3.0;
     let getX = function() {
       if (move_countdown > 0) {
-        let dx = atPlatform.xOffset + (atPlatform.heights.length -2) * atPlatform.scale/2 - prevX;
+        let dx = atPlatform.xOffset() + (atPlatform.heights.length -2) * atPlatform.scale/2 - prevX;
 
         return (prevX + dx*(400-move_countdown)/400);
       } else {
-        return atPlatform.xOffset + (atPlatform.heights.length -2) * atPlatform.scale/2;
+        return atPlatform.xOffset() + (atPlatform.heights.length -2) * atPlatform.scale/2;
       }
     }
     return {
@@ -33,7 +42,7 @@ createGame = function() {
       },
       moveto: (platform) => {
         if (atPlatform)
-          prevX = atPlatform.xOffset + (atPlatform.heights.length -2) * atPlatform.scale/2;
+          prevX = atPlatform.xOffset() + (atPlatform.heights.length -2) * atPlatform.scale/2;
         move_countdown = 400;
         atPlatform = platform;
       },
@@ -87,6 +96,7 @@ createGame = function() {
       over = new Set(),
       onPlatform = undefined,
       punch_countdown = 0,  // attack animation countdown timer
+      punch_cooldown = 0,
       animation = createAnimationData();
 
 
@@ -102,6 +112,7 @@ createGame = function() {
 
     let walk = function(dx) {
       if (!checkCollision(x, dx)) {
+        if(FAST) dx *= 5;
         x += dx;
         if (onPlatform) {
           // if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
@@ -120,6 +131,7 @@ createGame = function() {
       onPlatform = undefined;
     }
 
+<<<<<<< HEAD
     let die = function() {
       console.log("death begins");
       dying = true;
@@ -140,6 +152,30 @@ createGame = function() {
       lives--;
       dying = false;
       animation.h = 1.0;
+=======
+    let die = function(newX) {
+      if (!DEBUG) {
+        if (lives <= 1) {
+          console.log("gameover");
+          alert("game over");
+          lives = 4;
+          score = 0;
+          document.getElementById("score").innerHTML = "Score: " + score;
+          keyMap = {};
+        }
+        vy = 0;
+        jump_count++;
+        onPlatform = undefined;
+        x = newX + 1;
+        y = 0.0;
+        z = 2.0;
+        vy = 2.0;
+        lives--;
+
+        document.getElementById("lives").innerHTML = "Lives: " + lives;
+      //  console.log("dead");
+      }
+>>>>>>> origin/master
     }
 
     let kill = function(enemy) {
@@ -156,15 +192,23 @@ createGame = function() {
     };
 
     let punch = function () {
-      console.log("punch");
-      sound.punch();
-      punch_countdown = 150;
+      if (!punch_cooldown) {
+        console.log("punch");
+        sound.punch();
+        punch_countdown = 150;
+        punch_cooldown = 500;
+      }
     };
 
 
     let checkCollision = function(x, dx) {
+<<<<<<< HEAD
       if (safety && onPlatform && ((x+20*dx) < onPlatform.xOffset ||
           (x+20*dx) > onPlatform.xOffset + (onPlatform.heights.length -2) * onPlatform.scale)) {
+=======
+      if (onPlatform && safety && ((x+20*dx) < onPlatform.xOffset() ||
+          (x+20*dx) > onPlatform.xOffset() + (onPlatform.heights.length -2) * onPlatform.scale)) {
+>>>>>>> origin/master
         console.log("collide");
         return true;
       } else {
@@ -173,13 +217,13 @@ createGame = function() {
     };
 
     let heightAt = function(platform, x, z) {
-      var xIndex = (x - platform.xOffset) / platform.scale;
+      var xIndex = (x - platform.xOffset()) / platform.scale;
       var zIndex = (z / platform.scale);
       return platform.heightAtIndices(xIndex, zIndex);
     }
 
     let overPlatform = function(platform) {
-      var newX = x - platform.xOffset;
+      var newX = x - platform.xOffset();
       var xMax = (platform.heights.length -2) * platform.scale;
       var height = heightAt(platform, x, z);
       //console.log(zIndex, platform.heightAt(xIndex, zIndex));
@@ -196,7 +240,7 @@ createGame = function() {
     let checkLanding = function() {
       platforms.forEach(function(platform){
         if (over.has(platform) && overPlatform(platform) == "under") {
-          var xIndex = (x - platform.xOffset) / platform.scale;
+          var xIndex = (x - platform.xOffset()) / platform.scale;
           var zIndex = (z / platform.scale);
 
           jump_count = 0;
@@ -301,22 +345,35 @@ createGame = function() {
         }
         return result;
       },
-      update: (enemies) => {
+      update: (enemies, platforms) => {
         var newEnemies = enemies;
+<<<<<<< HEAD
         if (y <= MIN_HEIGHT) {
           die();
+=======
+        if (y < MIN_HEIGHT) {
+          die(platforms[0].xOffset());
+>>>>>>> origin/master
         }
         let collision = checkEnemies(enemies);
         let hitEnemy = collision.hitEnemy;
         if (hitEnemy) {
           if (collision.hitType == "die") {
-            die();
+            die(platforms[0].xOffset());
             //console.log("die");
+<<<<<<< HEAD
           } else if (collision.hitType == "punch") { //TODO: PROPERLY KILL ENEMY
             console.log("kill");
             hitEnemy.die();
             // let index = enemies.findIndex(function(e){return e==hitEnemy});
             // newEnemies = enemies.slice(0, index).concat(enemies.slice(index+1));
+=======
+          } else if (collision.hitType == "punch") {
+            score++;
+            document.getElementById("score").innerHTML = "Score: " + score;
+            let index = enemies.findIndex(function(e){return e==hitEnemy});
+            newEnemies = enemies.slice(0, index).concat(enemies.slice(index+1));
+>>>>>>> origin/master
           }
         }
         if (!dying) {
@@ -329,6 +386,9 @@ createGame = function() {
         if (punch_countdown) {
           punch_countdown = Math.max(punch_countdown - elapsed, 0);
         }
+        if (punch_cooldown) {
+          punch_cooldown = Math.max(punch_cooldown - elapsed, 0);
+        }
         return newEnemies
       }
     }
@@ -337,9 +397,13 @@ createGame = function() {
   let createEnemy = function(platform) {
 
     let hp = 100,
+<<<<<<< HEAD
       dying = false,
       dead = false,
       x = platform.xOffset + (platform.heights.length -2) * platform.scale/2,
+=======
+      x = platform.xOffset() + (platform.heights.length -2) * platform.scale/2,
+>>>>>>> origin/master
       y = 2.0,
       z = 1.95,
       vx = 1.0, // unit/s
@@ -382,8 +446,8 @@ createGame = function() {
     };
 
     let checkCollision = function(x, dx) {
-      if (onPlatform && ((x+30*dx) < onPlatform.xOffset ||
-          (x+30*dx) > onPlatform.xOffset + (onPlatform.heights.length -2) * onPlatform.scale)) {
+      if (onPlatform && ((x+30*dx) < onPlatform.xOffset() ||
+          (x+30*dx) > onPlatform.xOffset() + (onPlatform.heights.length -2) * onPlatform.scale)) {
         facing = 1 - facing;
         move_count = 0;
         return true;
@@ -393,7 +457,7 @@ createGame = function() {
     };
 
     let heightAt = function(platform, x, z) {
-      var xIndex = (x - platform.xOffset) / platform.scale;
+      var xIndex = (x - platform.xOffset()) / platform.scale;
       var zIndex = (z / platform.scale);
       return platform.heightAtIndices(xIndex, zIndex);
     }
@@ -450,19 +514,41 @@ createGame = function() {
   let platforms = [];
   let player = createPlayer();
   let enemies = [];
+  let waterTiles = [];
 
   return {
     player: player,
     update: () => {
       lighting.update();
-      let newEnemies = player.update(enemies);
+      let newEnemies = player.update(enemies, platforms);
       enemies = newEnemies;
       enemies.forEach(function(enemy){
         enemy.update();
       });
+<<<<<<< HEAD
+=======
+      // if (keyMap['F'.charCodeAt(0)]){
+      //   player.back();
+      // }
+      if (player.position()[0] - platforms[0].xOffset() > PLATFORM_DISAPPEAR) {
+        console.log("platform moved");
+        let platform = platforms.shift();
+        if (platform.shouldHaveEnemy) {
+          platform.shiftPlatform(numPlatforms, platformOffset);
+          enemies.push(createEnemy(platform));
+          platforms.push(platform);
+        }
+      }
+      if (player.position()[0] - waterTiles[0].xOffset() > waterTiles[0].width + PLATFORM_DISAPPEAR * 2) {
+        let water = waterTiles.shift();
+        water.shiftTile(water.width);
+        waterTiles.push(water);
+      }
+>>>>>>> origin/master
     },
     enemies: () => {return enemies},
     platforms: platforms,
+    waterTiles: waterTiles,
     addPlatform: (platform, shouldHaveEnemy) => {
       platforms.push(platform);
       if (shouldHaveEnemy) enemies.push(createEnemy(platform));
