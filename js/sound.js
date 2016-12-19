@@ -1,3 +1,12 @@
+/*
+ * Ben Brown
+ * Dylan Quenneville
+ * CS 461: Computer Graphics
+ * Final Project: Platformer Game
+ * sound.js
+ *  -> creates a global sound object
+ */
+
 // create Sound handling object
 createSound = function() {
 

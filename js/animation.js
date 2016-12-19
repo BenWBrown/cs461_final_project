@@ -1,3 +1,14 @@
+/*
+ * Ben Brown
+ * Dylan Quenneville
+ * CS 461: Computer Graphics
+ * Final Project: Platformer Game
+ * animation.js
+ *  -> creates an animation object that handles animating character / skeleton walking animations
+ *  -> Also handles skeleton death animation
+ */
+
+
 // create Animation object
 createAnimation = function() {
 

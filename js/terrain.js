@@ -1,3 +1,12 @@
+/*
+ * Ben Brown
+ * Dylan Quenneville
+ * CS 461: Computer Graphics
+ * Final Project: Platformer Game
+ * terrain.js
+ *  -> generates 2D heightfields used for platforms and water 
+ */
+
 // create 2D array of dimensions (size x size) and fill each element with 0
 var blankField = function(size) {
   let field = new Array(size);
