@@ -1,3 +1,12 @@
+/*
+ * Ben Brown
+ * Dylan Quenneville
+ * CS 461: Computer Graphics
+ * Final Project: Platformer Game
+ * shaders.js
+ *  -> the vertex and fragment shaders used by WebGL
+ */
+
 let vertexShader = `
 attribute vec4 a_Position;
 attribute vec4 a_Color;

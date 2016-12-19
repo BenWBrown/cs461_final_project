@@ -1,3 +1,13 @@
+/*
+ * Ben Brown
+ * Dylan Quenneville
+ * CS 461: Computer Graphics
+ * Final Project: Platformer Game
+ * renderer.js
+ *  -> entry point for the game, manages the main render loop, calling udate on all of the game's objects
+ *  -> also creates and manages the camera
+ */
+
 var createCamera = function() {
 
   let position = [0.0, 1.5, 5.5];

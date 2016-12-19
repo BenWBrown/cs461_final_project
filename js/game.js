@@ -1,3 +1,13 @@
+/*
+ * Ben Brown
+ * Dylan Quenneville
+ * CS 461: Computer Graphics
+ * Final Project: Platformer Game
+ * game.js
+ *  -> manages the essential objects that interact in the game.
+ *  -> creates and stores a player object, enemy objects, platform objects, and water tiles
+ */
+
 let EPS = 0.00001;
 let MIN_HEIGHT = -0.75;
 let CHARACTER_WIDTH = 0.35; //TODO: IS THERE A BETTER NUMBER?
