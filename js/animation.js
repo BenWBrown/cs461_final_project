@@ -1,21 +1,9 @@
 // create Animation object
 createAnimation = function() {
 
-  let walk = false;
-  let walk_start = 0;
-  let walk_frame = 0;
   let walk_frame_duration = 125; // in milliseconds
-
-
-  // let punch = false;
-  // let punch_start = 0;
-  // let punch_frame = 0;
   let attack_frame_duration = 50; // in milliseconds
-
-
   let death_duration = 500; // in milliseconds
-
-  let facing;
 
 
   let updateWalkAnimation = function(character, now) {
@@ -27,7 +15,7 @@ createAnimation = function() {
       }
       anim.walk_frame = (Math.floor((now - anim.walk_start) % (walk_frame_duration*8) / walk_frame_duration));
 
-    } else { // no walking -> either do not update, or stop animation
+    } else { // not walking -> either do not update, or stop animation
       if (anim.walk) { // was walking but stopped
         anim.walk = false;
         anim.walk_frame = 0;
@@ -39,13 +27,13 @@ createAnimation = function() {
     let anim = character.animation;
     if (character.getState()[1] == 3) {
       if (!anim.attack) {
-        anim.attack_start = now; // reset start of walking animation
+        anim.attack_start = now; // reset start of attack animation
         anim.attack = true;
       }
       anim.attack_frame = (Math.floor((now - anim.attack_start) % (attack_frame_duration*3) / attack_frame_duration));
 
-    } else { // no walking -> either do not update, or stop animation
-      if (anim.attack) { // was walking but stopped
+    } else { // not attacking -> either do not update, or stop animation
+      if (anim.attack) { // was attacking but stopped
         anim.attack = false;
         anim.attack_frame = 0;
       }
@@ -58,7 +46,7 @@ createAnimation = function() {
       console.log("dying");
       let anim = character.animation;
       if (!anim.death) {
-        anim.death_start = now; // reset start of walking animation
+        anim.death_start = now; // reset start of death animation
         anim.death = true;
       }
       anim.h = 1.0 - (now - anim.death_start)/death_duration;
@@ -66,7 +54,6 @@ createAnimation = function() {
         anim.h = 1.0;
         anim.death = false;
         character.finishDeath();
-        // anim.hide();
       }
     }
   }
@@ -101,8 +88,6 @@ createAnimation = function() {
         updateDeathAnimation(enemy, now);
       });
 
-      // updateattackAnimation(now, state[1] == 3);
-      // facing = state[0];
     }
   }
 

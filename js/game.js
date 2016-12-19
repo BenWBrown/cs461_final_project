@@ -9,7 +9,6 @@ let DEBUG = false;
 let FAST = false;
 
 let score = 0;
-// >>>>>>> origin/master
 
 // create Game object
 createGame = function(numPlatforms, platformOffset) {
@@ -116,11 +115,7 @@ createGame = function(numPlatforms, platformOffset) {
         if(FAST) dx *= 5;
         x += dx;
         if (onPlatform) {
-          // if (heightAt(onPlatform, x, z) > MIN_HEIGHT) {
-            y = heightAt(onPlatform, x, z);
-          // } else {
-          //   die();
-          // }
+          y = heightAt(onPlatform, x, z);
         }
       }
       facing = dx > 0 ? 0 : 1;
@@ -136,7 +131,7 @@ createGame = function(numPlatforms, platformOffset) {
       sound.grunt();
       knockback_countdown = 300;
       hp--;
-      document.getElementById("hp").innerHTML = "Hit Points: " + hp;
+      document.getElementById("hp").innerHTML = "HP: " + hp;
       ax = -13;
       vx = 5;
     };
@@ -175,8 +170,7 @@ createGame = function(numPlatforms, platformOffset) {
         hp = 3;
 
         document.getElementById("lives").innerHTML = "Lives: " + lives;
-        document.getElementById("hp").innerHTML = "Hit Points: " + hp;
-      //  console.log("dead");
+        document.getElementById("hp").innerHTML = "HP: " + hp;
       }
     }
 
@@ -223,7 +217,6 @@ createGame = function(numPlatforms, platformOffset) {
       var newX = x - platform.xOffset();
       var xMax = (platform.heights.length -2) * platform.scale;
       var height = heightAt(platform, x, z);
-      //console.log(zIndex, platform.heightAt(xIndex, zIndex));
       if (0 < newX && newX < xMax && y > height - EPS) {
         return "over";
       }
@@ -246,13 +239,6 @@ createGame = function(numPlatforms, platformOffset) {
           onPlatform = platform;
           over.clear();
           lighting.moveto(onPlatform);
-        }
-
-        if (y <= -3) { //TODO: USE WATER HEIGHT
-          //TODO: LOSE A LIFE
-          jump_count = 0;
-          vy = 0;
-          y = -3;
         }
       });
     };
@@ -300,7 +286,6 @@ createGame = function(numPlatforms, platformOffset) {
             hitEnemy = enemy;
             hitType = "hit"
           }
-          // console.log(enemy.position()[0], x, PUNCH_DISTANCE);
           if (Math.abs(enemy.position()[0] - x) <  CHARACTER_WIDTH + PUNCH_DISTANCE
               && punch_countdown
               && ((facing == 0 && enemy.position()[0] > x) || (facing == 1 && enemy.position()[0] < x)) ) {

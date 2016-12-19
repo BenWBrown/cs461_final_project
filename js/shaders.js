@@ -66,8 +66,6 @@ void main(){
   normal += v_Normal;
 
   normal = normalize(normal);
-  // vec3 normal = v_Normal;
-  // color = normal;
 
 
   P = (u_View*u_Transform*v_Position).xyz;
@@ -75,13 +73,12 @@ void main(){
   dist = distance(P, light_position);
   N = normalize((u_View*u_Transform*vec4(normal, 0.0)).xyz);
   L = normalize(light_position - P);
-  // L = normalize((u_View*u_Transform*vec4(normalize(u_LightDirection), 0.0)).xyz); // directional lighting
   V = normalize( -P);
   H = normalize(L+V);
 
   ambient = color * light_ambient;
   diffuse = color * max(dot(L, N), 0.0) * light_diffuse;
-  diffuse /= (1.0+0.005*dist*dist); // distance attenuation, need to sort this out
+  diffuse /= (1.0+0.005*dist*dist);
   specular = max(color * pow(max(dot(N, H), 0.0), shininess) * light_specular, 0.0) ;
 
 
@@ -89,7 +86,5 @@ void main(){
     discard;
   else
     gl_FragColor = vec4(ambient + diffuse + specular, 1.0);
-  // gl_FragColor = vec4(ambient + diffuse, alpha);
-  // gl_FragColor = (texture2D(u_Sampler, v_TexCoord));
 }
 `;

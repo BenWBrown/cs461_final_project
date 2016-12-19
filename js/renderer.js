@@ -1,3 +1,4 @@
+// camera location/orientation information object
 var createCamera = function() {
 
   let position = [0.0, 1.5, 5.5];
@@ -10,8 +11,6 @@ var createCamera = function() {
     },
     update: (game) => {
       position[0] = game.player.position()[0];
-      // position[1] = game.player.position()[1]+0.5;
-      // console.log(game.player.position);
     },
     apply: (transform) => {
       let eye = vec3.fromValues(position[0], position[1], position[2]);
@@ -22,78 +21,6 @@ var createCamera = function() {
     }
   }
 }
-
-
-
-// not to be used in final code, just for rendering demo purposes
-var createFloor = function(gl, program, size){
-  w = 1.0;
-  h = 1.0;
-  let floor = {
-    vertices :  new Float32Array([
-      0.0, 0.0, 0.0,  0.0, 0.0, size,  size, 0.0, size,  size, 0.0, 0.0
-    ]),
-    normals : new Float32Array([
-      0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0, 0.0
-    ]),
-
-    textureCoordinates : new Float32Array([
-      size, size,  0.0, size, 0.0, 0.0, size, 0.0
-    ]),
-
-    indices : new Uint8Array([
-      0,1,2,  0,2,3,
-    ])
-
-  };
-
-
-  floor.vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, floor.vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, floor.vertices, gl.STATIC_DRAW);
-
-  floor.normalBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, floor.normalBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, floor.normals, gl.STATIC_DRAW);
-
-
-
-  floor.indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, floor.indexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, floor.indices, gl.STATIC_DRAW);
-
-
-  return function(){
-    gl.uniform1i(program.u_Sampler, 1); // texture 0: grass
-    gl.uniform1i(program.u_NormalMap, 0); // texture 4: blank normal map
-    gl.bindBuffer(gl.ARRAY_BUFFER, floor.vertexBuffer);
-    gl.vertexAttribPointer(program.a_Position, 3, gl.FLOAT, false, 0,0);
-
-    floor.textureBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, floor.textureBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, floor.textureCoordinates, gl.STATIC_DRAW);
-
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, floor.textureBuffer);
-    gl.vertexAttribPointer(program.a_TexCoord, 2, gl.FLOAT, false, 0,0);
-
-    if (program.a_Normal !== undefined){
-      // only enable the normal buffer if the program supports it
-      gl.bindBuffer(gl.ARRAY_BUFFER, floor.normalBuffer);
-      gl.vertexAttribPointer(program.a_Normal, 3, gl.FLOAT, false, 0,0);
-    }
-
-    if (program.a_Color !== undefined){
-      // only enable the normal buffer if the program supports it
-      gl.bindBuffer(gl.ARRAY_BUFFER, floor.normalBuffer);
-      gl.vertexAttribPointer(program.a_Color, 3, gl.FLOAT, false, 0,0);
-    }
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, floor.indexBuffer);
-    gl.drawElements(gl.TRIANGLES, floor.indices.length, gl.UNSIGNED_BYTE, 0);
-
-  };
-};
 
 
 var createCharacterSprite = function(gl, program, w, h, texID) {
@@ -353,7 +280,6 @@ window.onload = function(){
   // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   // gl.enable(gl.BLEND);
 
-  gl.clearColor(0.3,0.5,0.9,1); // sky color
   gl.clearColor(0.0,0.0,0.1,1); // black
 
   let u_Transform = gl.getUniformLocation(program, 'u_Transform');
@@ -366,7 +292,6 @@ window.onload = function(){
 
   gl.uniform3f(program.u_LightDirection, 0.5, 1.0, 0.5);
   gl.uniform3f(program.u_Ambient, 0.2, 0.2, 0.2);
-  // gl.uniform3f(program.u_Ambient, 0.9, 0.9, 0.9);
   gl.uniform3f(program.u_Diffuse, 0.8, 0.8, 0.8);
   // gl.uniform3f(program.u_Specular, 0.8, 0.8, 0.8);
 
@@ -380,23 +305,18 @@ window.onload = function(){
       keyMap[e.which] = true;
       if (keyMap['B'.charCodeAt(0)]) {
         initializeTexture(gl, gl.TEXTURE3,'../images/player-white.png');
-        // keyMap['Y'.charCodeAt(0)] = false;
       }
       if (keyMap['N'.charCodeAt(0)]) {
         initializeTexture(gl, gl.TEXTURE3,'../images/player-normals.png');
-        // keyMap['Y'.charCodeAt(0)] = false;
       }
       if (keyMap['R'.charCodeAt(0)]) {
         initializeTexture(gl, gl.TEXTURE3,'../images/player.png');
-        // keyMap['Y'.charCodeAt(0)] = false;
       }
   }
 
   window.onkeyup = function(e){
        keyMap[e.which] = false;
   }
-
-
 
 
   // create game object (stores layout, player, NPCs)
@@ -419,18 +339,14 @@ window.onload = function(){
     createPlatform(game, 1, 4, 0, (i+1) * platformOffset, 0, 0.25, true); //game, textureID, size, y-offset, x-offset, z-offset, scale, shouldHaveEnemy
   }
 
-  // platform1 = createPlatform(game, 1, 4, 0, 1, 0.25);  //game, textureID, size, y-offset, x-offset, z-offset, scale
-  // platform2 = createPlatform(game, 1, 4, 0, -3, 0.25); //game, textureID, size, y-offset, x-offset, z-offset, scale
   let waterScale = 16;
   let waterSize = 2;
   let tileSize = (Math.pow(2, waterSize) -1) * waterScale;
   water1 = createWater(game, 2, waterSize, -1.0, -15, -20, waterScale, tileSize);
   water2 = createWater(game, 2, waterSize, -1.0, -15 + tileSize, -20, waterScale, tileSize, water1.heights );
-  //water3 = createWater(game, 6, waterSize, -1.0, -15 + tileSize * 2, -20, waterScale, tileSize, water1.heights );
 
   var now = 0;
   var then = 0;
-  //drawGrass = createFloor(gl, program, 5.0);
   drawPlayer = createCharacterSprite(gl, program, 1.0, 1.0, 3);
   drawEnemy = createCharacterSprite(gl, program, 1.0, 1.0, 5);
   drawPlatforms = function() {
@@ -439,7 +355,6 @@ window.onload = function(){
       drawMesh();
     });
   };
-  //drawPlatforms = createMesh(gl, program, platform1, platform1.textureID, platform1.yOffset, platform1.xOffset);
   drawWater = function() {
     game.waterTiles.forEach(function(water) {
       var drawMesh = createMesh(gl, program, water, 10.0);
@@ -508,7 +423,6 @@ window.onload = function(){
           animation.getCharacterFrame(enemy), enemy.animation.h);
       }
     });
-    //console.log(game.enemies.length);
 
     requestAnimationFrame(render);
   };
@@ -525,5 +439,4 @@ window.onload = function(){
 
     ])
     .then(function () {render();})
-    //.catch(function (error) {alert('Failed to load texture '+  error.message);});
 }
